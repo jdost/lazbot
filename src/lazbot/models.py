@@ -80,4 +80,4 @@ class Event(object):
             return u"Event: {}".format(self.type)
 
     def __repr__(self):
-        return str(self.raw)
+        return unicode(self.raw)

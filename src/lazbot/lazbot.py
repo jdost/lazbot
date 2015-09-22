@@ -112,6 +112,7 @@ class Lazbot(object):
         data = self.__read_socket()
 
         for event in self.__parse_events(data):
+            print str(event)
             if event.is_a(Event.MESSAGE):
                 for filter in self.filters:
                     filter(event)

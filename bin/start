@@ -16,7 +16,7 @@ if __name__ == "__main__":
     app.config = utils.load_config('config.json')
     app.bot = Lazbot(app.config["slack_token"])
 
-    utils.load_plugins(os.path.join(directory, "src"))
+    utils.load_plugins(os.path.join(directory, "src", "plugins"))
     try:
         app.bot.start()
     except KeyboardInterrupt:
