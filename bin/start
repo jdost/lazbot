@@ -1,0 +1,25 @@
+#!/bin/env python2
+
+from lazbot import Lazbot
+from lazbot import utils
+import os
+import sys
+
+app = utils.build_namespace("app")
+
+if __name__ == "__main__":
+    directory = os.path.dirname(sys.argv[0]) + "/.."
+    if not directory.startswith('/'):
+        directory = os.path.abspath(
+            "{}/{}".format(os.getcwd(), directory))
+
+    app.config = utils.load_config('config.json')
+    app.bot = Lazbot(app.config["slack_token"])
+
+    utils.load_plugins(os.path.join(directory, "src"))
+    try:
+        app.bot.start()
+    except KeyboardInterrupt:
+        sys.exit(0)
+
+# vim: ft=python
