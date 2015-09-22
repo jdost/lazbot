@@ -1,3 +1,6 @@
+import re
+
+
 class User(object):
     def __init__(self, id, name):
         self.id = id
@@ -36,6 +39,8 @@ class Channel(object):
 
 class Event(object):
     MESSAGE = "message"
+    PONG = "pong"
+    PRESENCE_CHANGE = "presence_change"
     cleanup_functions = []
 
     @classmethod
@@ -67,10 +72,20 @@ class Event(object):
         hash.update(kwargs)
         return hash
 
-    def is_a(self, type):
-        return type == self.type
+    def is_a(self, *types):
+        return self.type in types
 
     def __str__(self):
+        if self.is_a(self.MESSAGE):
+            if not self.text:
+                return repr(self)
+            return re.sub(
+                r'[^\x00-\x7f]', r'?', "{!s} ({!s}): {}".format(
+                    self.user, self.channel, self.text))
+        else:
+            return "Event: {}".format(self.type)
+
+    def __unicode__(self):
         if self.is_a(self.MESSAGE):
             if not self.text:
                 return repr(self)
@@ -80,4 +95,4 @@ class Event(object):
             return u"Event: {}".format(self.type)
 
     def __repr__(self):
-        return unicode(self.raw)
+        return str(self.raw)

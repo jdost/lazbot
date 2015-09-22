@@ -70,7 +70,14 @@ class Lazbot(object):
         self.client.chat.post_message(**message)
 
     def get_user(self, user_id):
-        return self.users.get(user_id, None)
+        if type(user_id) is dict:
+            user_id = user_id['id']
+
+        try:
+            return self.users.get(user_id, None)
+        except TypeError:
+            print "TypeError", user_id
+            return None
 
     def get_channel(self, channel_id):
         return self.channels.get(channel_id, None)
@@ -112,7 +119,9 @@ class Lazbot(object):
         data = self.__read_socket()
 
         for event in self.__parse_events(data):
-            print str(event)
+            if event.is_a(Event.PONG, Event.PRESENCE_CHANGE):
+                continue
+            print unicode(event)
             if event.is_a(Event.MESSAGE):
                 for filter in self.filters:
                     filter(event)
