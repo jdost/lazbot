@@ -51,3 +51,9 @@ Included are two example/helper plugins
 The `ext.py` plugin provides some convenient handlers to help populate the user and
 channel lookup functionality and provides another (currently undocumented) filter
 to convert the slackified username for the current bot into `@me` for easier filters.
+
+### about
+
+The `about.py` plugin provides a simple example of reading config variables and
+implementing a simple listener.  It will just respond to `@<bot_name>: about` and
+respond with `Hi, I am <bot_name>, a bot in development by @<configured_username>`.
