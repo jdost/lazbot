@@ -2,6 +2,7 @@
 
 from lazbot import Lazbot
 from lazbot import utils
+from lazbot import logger
 import os
 import sys
 
@@ -12,6 +13,8 @@ if __name__ == "__main__":
     if not directory.startswith('/'):
         directory = os.path.abspath(
             "{}/{}".format(os.getcwd(), directory))
+
+        logger.setup()
 
     app.config = utils.load_config('config.json')
     app.bot = Lazbot(app.config["slack_token"])

@@ -1,8 +1,21 @@
 from models import Event
+import logger
+
 import re
 
 identity = lambda x: x
 RegexObject = type(re.compile("regex object"))
+
+_current_plugin = ''
+
+
+def current_plugin(x=None):
+    global _current_plugin
+
+    if not x:
+        return _current_plugin
+
+    _current_plugin = x
 
 
 class Filter(object):
@@ -39,16 +52,13 @@ class Filter(object):
             name = match[1]
             type = match[0]
 
-            print "<{}:{}> -> (?P<{}>{})".format(
-                match[0], match[1],
-                match[1], cls.translations[match[0]]["regex"])
             new_regex = new_regex.replace(
                 "<{}:{}>".format(type, name),
                 "(?P<{}>{})".format(name, cls.translations[type]["regex"]))
 
             parser.append((name, cls.translations[type]["handler"]))
 
-        print "Compiled regex into: {}".format(new_regex)
+        logger.debug("Compiled regex into: %s", new_regex)
         return re.compile(new_regex), parser
 
     @classmethod
@@ -67,6 +77,8 @@ class Filter(object):
         self.handler = handler
         self.handlers = None
         self.channels = self._cleanup_channels(channels)
+
+        self._plugin = current_plugin
 
         if regex:
             self.cmp, self.handlers = self.compile_regex(match_txt)
@@ -93,7 +105,8 @@ class Filter(object):
             return
 
         result = self.__parse__(event.text)
-        return self.handler(**(event + result))
+        with logger.scope(self._plugin):
+            return self.handler(**(event + result))
 
     def __eq__(self, target):
         if self.channels and target.channel not in self.channels:

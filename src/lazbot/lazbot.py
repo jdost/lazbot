@@ -3,9 +3,11 @@ import json
 from ssl import SSLError
 
 from models import Event, User
-from filter import Filter
+from filter import Filter, current_plugin
 from slacker import Slacker
 from websocket import create_connection
+
+import logger
 
 
 class Lazbot(object):
@@ -28,14 +30,15 @@ class Lazbot(object):
         ws_url = reply.body['url']
         self.parse_login_data(reply.body)
 
-        print "Connecting socket: {}".format(ws_url)
+        logger.info("Connecting socket: %s", ws_url)
         self.socket = create_connection(ws_url)
         self.socket.sock.setblocking(0)
 
     def start(self):
         self.connect()
-        for f in self._setup:
-            f(self.client)
+        for name, handler in self._setup:
+            with logger.scope(name):
+                handler(self.client)
 
         while True:
             self.__read()
@@ -46,7 +49,7 @@ class Lazbot(object):
         self.domain = login_data["team"]["domain"]
         self.user = User(login_data["self"]["id"], login_data["self"]["name"])
 
-        print "Logged in as {!s} on {}".format(self.user, self.domain)
+        logger.info("Logged in as %s on %s", self.user, self.domain)
 
     def autoping(self):
         # hardcode the interval to 3 seconds
@@ -76,7 +79,7 @@ class Lazbot(object):
         try:
             return self.users.get(user_id, None)
         except TypeError:
-            print "TypeError", user_id
+            logger.debug("TypeError %r", user_id)
             return None
 
     def get_channel(self, channel_id):
@@ -106,7 +109,7 @@ class Lazbot(object):
         for event in self.__parse_events(data):
             if event.is_a(Event.PONG, Event.PRESENCE_CHANGE):
                 continue
-            print unicode(event)
+            logger.debug(unicode(event))
             if event.is_a(Event.MESSAGE):
                 for filter in self.filters:
                     filter(event)
@@ -127,5 +130,5 @@ class Lazbot(object):
         return handler
 
     def setup(self, f):
-        self._setup.append(f)
+        self._setup.append((current_plugin(), f))
         return f

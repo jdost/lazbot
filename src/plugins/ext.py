@@ -1,5 +1,6 @@
 from app import bot
 from lazbot.models import Channel, User, Event
+import lazbot.logger as logger
 
 
 @bot.setup
@@ -9,7 +10,7 @@ def fix_channels(client):
         bot.channels[channel["id"]] = Channel(
             channel["id"], channel["name"])
 
-    print "Loaded {} channels".format(len(channel_list.body["channels"]))
+    logger.info("Loaded %d channels", len(channel_list.body["channels"]))
 
 
 @bot.setup
@@ -19,7 +20,7 @@ def fix_users(client):
     for user in user_list["members"]:
         bot.users[user["id"]] = User(user["id"], user["name"])
 
-    print "Loaded {} users".format(len(user_list["members"]))
+    logger.info("Loaded %d users", len(user_list["members"]))
 
 
 @Event.cleanup_filter
