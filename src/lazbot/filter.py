@@ -1,3 +1,4 @@
+from models import Event
 import re
 
 identity = lambda x: x
@@ -72,18 +73,27 @@ class Filter(object):
         else:
             self.cmp = match_txt
 
-    def __call__(self, event):
+    def __parse__(self, text):
+        result = {}
+        match = self.cmp.match(text)
+
+        if self.handlers:
+            for name, handler in self.handlers:
+                result[name] = handler(match.group(name))
+
+            return result
+        else:
+            return match
+
+    def __call__(self, event=None, **kwargs):
+        if not isinstance(event, Event):
+            return self.handler(**kwargs)
+
         if not (self == event):
             return
 
-        result = {}
-
-        if self.handlers:
-            raw_result = self.cmp.match(event.text)
-            for name, handler in self.handlers:
-                result[name] = handler(raw_result.group(name))
-
-        self.handler(**(event + result))
+        result = self.__parse__(event.text)
+        return self.handler(**(event + result))
 
     def __eq__(self, target):
         if self.channels and target.channel not in self.channels:

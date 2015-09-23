@@ -82,21 +82,6 @@ class Lazbot(object):
     def get_channel(self, channel_id):
         return self.channels.get(channel_id, None)
 
-    def listen(self, filter, channel=None, regex=False):
-        def handler(f):
-            self.filters.append(Filter(
-                bot=self,
-                match_txt=filter,
-                handler=f,
-                channels=channel,
-                regex=regex
-            ))
-
-        return handler
-
-    def setup(self, f):
-        self._setup.append(f)
-
     def __read_socket(self):
         data = ""
         while True:
@@ -125,3 +110,22 @@ class Lazbot(object):
             if event.is_a(Event.MESSAGE):
                 for filter in self.filters:
                     filter(event)
+
+    def listen(self, filter, channel=None, regex=False):
+        def handler(f):
+            new_filter = Filter(
+                bot=self,
+                match_txt=filter,
+                handler=f,
+                channels=channel,
+                regex=regex
+            )
+            self.filters.append(new_filter)
+
+            return new_filter
+
+        return handler
+
+    def setup(self, f):
+        self._setup.append(f)
+        return f
