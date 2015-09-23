@@ -7,6 +7,13 @@ various handlers with the event they are tied to.
 
 NOTE: this is very much unfinished
 
+## Setup
+
+All you need to do is take the token for the slack user you wish to act as, copy
+the `etc/config.json` to the root, replacing the `slack_token` with the token you
+generated.  Then you can run `make start` to run this (or add `src` to your 
+PYTHONPATH and run `bin/start`).
+
 ## Events
 
 Initially, there are only a few events tied into.  This is a very much work in
