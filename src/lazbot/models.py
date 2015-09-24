@@ -60,7 +60,7 @@ class Event(object):
         self.channel = bot.get_channel(raw.get("channel", ""))
         self.user = bot.get_user(raw.get("user", ""))
 
-        self.type = raw["type"]
+        self.type = raw["subtype"] if "subtype" in raw else raw["type"]
         self.text = self.cleanup_text(raw.get("text", ""))
 
     def __add__(self, kwargs):

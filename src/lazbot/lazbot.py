@@ -9,6 +9,8 @@ from websocket import create_connection
 
 import logger
 
+Slacker.DEFAULT_TIMEOUT = 20
+
 
 class Lazbot(object):
     ping_packet = json.dumps({"type": "ping"})
@@ -83,7 +85,11 @@ class Lazbot(object):
             return None
 
     def get_channel(self, channel_id):
-        return self.channels.get(channel_id, None)
+        try:
+            return self.channels.get(channel_id, None)
+        except TypeError:
+            logger.debug("TypeError %s", channel_id)
+            return None
 
     def __read_socket(self):
         data = ""

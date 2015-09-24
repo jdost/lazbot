@@ -78,7 +78,7 @@ class Filter(object):
         self.handlers = None
         self.channels = self._cleanup_channels(channels)
 
-        self._plugin = current_plugin
+        self._plugin = _current_plugin
 
         if regex:
             self.cmp, self.handlers = self.compile_regex(match_txt)
@@ -86,6 +86,9 @@ class Filter(object):
             self.cmp = match_txt
 
     def __parse__(self, text):
+        if type(self.cmp) is str:
+            return {}
+
         result = {}
         match = self.cmp.match(text)
 
