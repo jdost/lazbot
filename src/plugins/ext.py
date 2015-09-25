@@ -3,7 +3,7 @@ from lazbot.models import Channel, User, Event
 import lazbot.logger as logger
 
 
-@bot.setup
+@bot.setup(priority=True)
 def fix_channels(client):
     channel_list = client.channels.list()
     for channel in channel_list.body["channels"]:
@@ -13,7 +13,7 @@ def fix_channels(client):
     logger.info("Loaded %d channels", len(channel_list.body["channels"]))
 
 
-@bot.setup
+@bot.setup(priority=True)
 def fix_users(client):
     user_list = client.users.list().body
 

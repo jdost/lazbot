@@ -41,6 +41,8 @@ class Event(object):
     MESSAGE = "message"
     PONG = "pong"
     PRESENCE_CHANGE = "presence_change"
+    REACTION_ADDED = "reaction_added"
+
     cleanup_functions = []
 
     @classmethod
@@ -56,8 +58,13 @@ class Event(object):
 
     def __init__(self, bot, raw):
         self.raw = raw
+        self.bot = bot
 
-        self.channel = bot.get_channel(raw.get("channel", ""))
+        if raw["type"] == Event.REACTION_ADDED:
+            self.channel = bot.get_channel(
+                raw.get("item", {}).get("channel", ""))
+        else:
+            self.channel = bot.get_channel(raw.get("channel", ""))
         self.user = bot.get_user(raw.get("user", ""))
 
         self.type = raw["subtype"] if "subtype" in raw else raw["type"]

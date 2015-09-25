@@ -1,9 +1,11 @@
 import time
+from datetime import datetime, timedelta
 import json
 from ssl import SSLError
 
 from models import Event, User
 from filter import Filter, current_plugin
+from schedule import ScheduledTask
 from slacker import Slacker
 from websocket import create_connection
 
@@ -14,6 +16,7 @@ Slacker.DEFAULT_TIMEOUT = 20
 
 class Lazbot(object):
     ping_packet = json.dumps({"type": "ping"})
+    PING_INTERVAL = 3
 
     def __init__(self, token):
         self.last_ping = 0
@@ -22,10 +25,13 @@ class Lazbot(object):
         self.channels = {}
         self.users = {}
         self._setup = []
+        self._scheduled_tasks = []
         self.client = None
 
+        self.schedule(self.__cleanup, after=timedelta(minutes=1),
+                      recurring=True)
+
     def connect(self):
-        """Convenience method that creates Server instance"""
         self.client = Slacker(self.token)
 
         reply = self.client.rtm.start()
@@ -44,6 +50,7 @@ class Lazbot(object):
 
         while True:
             self.__read()
+            self.__check_tasks()
             self.autoping()
             time.sleep(.1)
 
@@ -54,9 +61,8 @@ class Lazbot(object):
         logger.info("Logged in as %s on %s", self.user, self.domain)
 
     def autoping(self):
-        # hardcode the interval to 3 seconds
         now = int(time.time())
-        if now > self.last_ping + 3:
+        if now > self.last_ping + self.PING_INTERVAL:
             self.ping()
             self.last_ping = now
 
@@ -88,19 +94,18 @@ class Lazbot(object):
         try:
             return self.channels.get(channel_id, None)
         except TypeError:
-            logger.debug("TypeError %s", channel_id)
+            logger.debug("TypeError %r", channel_id)
             return None
 
     def __read_socket(self):
         data = ""
-        while True:
-            try:
-                data += "{}\n".format(self.socket.recv())
-            except SSLError as e:
-                if e.errno == 2:
-                    return ''
-                raise
-            return data.rstrip()
+        try:
+            data += "{}\n".format(self.socket.recv())
+        except SSLError as e:
+            if e.errno == 2:
+                return ''
+            raise
+        return data.rstrip()
 
     def __parse_events(self, raw_data):
         if raw_data == '':
@@ -120,12 +125,28 @@ class Lazbot(object):
                 for filter in self.filters:
                     filter(event)
 
+    def __check_tasks(self):
+        now = datetime.now()
+        for task in self._scheduled_tasks:
+            if task <= now:
+                task()
+
+    def __cleanup(self):
+        old_length = len(self._scheduled_tasks)
+        self._scheduled_tasks = [task for task in self._scheduled_tasks
+                                 if not task.done]
+        new_length = len(self._scheduled_tasks)
+
+        if old_length > new_length:
+            logger.info("Cleaned up %d finished tasks",
+                        old_length - new_length)
+
     def listen(self, filter, channel=None, regex=False):
-        def handler(f):
+        def decorated(function):
             new_filter = Filter(
                 bot=self,
                 match_txt=filter,
-                handler=f,
+                handler=function,
                 channels=channel,
                 regex=regex
             )
@@ -133,8 +154,21 @@ class Lazbot(object):
 
             return new_filter
 
-        return handler
+        return decorated
 
-    def setup(self, f):
-        self._setup.append((current_plugin(), f))
-        return f
+    def setup(self, function=None, priority=False):
+        def decorated(function):
+            self._setup.insert(0 if priority else len(self._setup),
+                               (current_plugin(), function))
+            return function
+
+        return decorated(function) if function else decorated
+
+    def schedule(self, function=None, when=None, after=None, recurring=False):
+        def decorated(function):
+            task = ScheduledTask(action=function, delta=after,
+                                 when=when, recurring=recurring)
+            self._scheduled_tasks.append(task)
+            return task
+
+        return decorated(function) if function else decorated
