@@ -8,18 +8,18 @@ import logger
 from types import ModuleType
 
 
-def load_plugins(directory):
-    for plugin in glob.glob(os.path.join(directory, "*")):
-        sys.path.insert(0, plugin)
-        sys.path.insert(0, os.path.join(directory))
+def load_plugins(directory, *plugins):
+    sys.path.insert(0, os.path.join(directory))
+    if not len(plugins):
+        plugins = [p.split('/')[-1][:-3] for p in
+                   (glob.glob(os.path.join(directory, "*.py")) +
+                    glob.glob(os.path.join(directory, "*", "*.py")))]
 
-    for plugin in glob.glob(os.path.join(directory, "*.py")) + \
-            glob.glob(os.path.join(directory, "*", "*.py")):
-        name = plugin.split('/')[-1][:-3]
-        logger.current_plugin(name)
-        with logger.scope(name):
-            logger.info("Loading plugin: %s", name)
-            __import__(name)
+    for plugin in plugins:
+        logger.current_plugin(plugin)
+        with logger.scope(plugin):
+            logger.info("Loading plugin: %s", plugin)
+            __import__(plugin)
         logger.current_plugin('')
 
 
