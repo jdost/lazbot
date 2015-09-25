@@ -4,7 +4,7 @@ import json
 from ssl import SSLError
 
 from models import Event, User
-from filter import Filter, current_plugin
+from filter import Filter
 from schedule import ScheduledTask
 from slacker import Slacker
 from websocket import create_connection
@@ -159,7 +159,7 @@ class Lazbot(object):
     def setup(self, function=None, priority=False):
         def decorated(function):
             self._setup.insert(0 if priority else len(self._setup),
-                               (current_plugin(), function))
+                               (logger.current_plugin(), function))
             return function
 
         return decorated(function) if function else decorated

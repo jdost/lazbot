@@ -3,6 +3,16 @@ import contextlib
 
 base_logger = logging
 current_logger = base_logger
+_current_plugin = ''
+
+
+def current_plugin(x=None):
+    global _current_plugin
+
+    if not x:
+        return _current_plugin
+
+    _current_plugin = x
 
 
 def setup():
@@ -42,5 +52,7 @@ def scope(name):
     global current_logger
 
     current_logger = base_logger.getLogger(name)
+    current_plugin(name)
     yield
     current_logger = base_logger
+    current_plugin('')

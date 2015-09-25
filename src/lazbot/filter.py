@@ -6,17 +6,6 @@ import re
 identity = lambda x: x
 RegexObject = type(re.compile("regex object"))
 
-_current_plugin = ''
-
-
-def current_plugin(x=None):
-    global _current_plugin
-
-    if not x:
-        return _current_plugin
-
-    _current_plugin = x
-
 
 class Filter(object):
     translations = {
@@ -78,7 +67,7 @@ class Filter(object):
         self.handlers = None
         self.channels = self._cleanup_channels(channels)
 
-        self._plugin = _current_plugin
+        self._plugin = logger.current_plugin()
 
         if regex:
             self.cmp, self.handlers = self.compile_regex(match_txt)

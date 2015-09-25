@@ -1,4 +1,5 @@
 from datetime import datetime
+import logger
 
 
 class ScheduledTask(object):
@@ -18,6 +19,7 @@ class ScheduledTask(object):
             self.next = when
 
         self._action = action
+        self._plugin = logger.current_plugin()
         self.recurring = recurring
         self.done = False
 
@@ -59,4 +61,5 @@ class ScheduledTask(object):
         else:
             self.done = True
 
-        return self._action(*args, **kwargs)
+        with logger.scope(self._plugin):
+            return self._action(*args, **kwargs)
