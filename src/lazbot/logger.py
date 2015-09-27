@@ -9,10 +9,9 @@ _current_plugin = ''
 def current_plugin(x=None):
     global _current_plugin
 
-    if not x:
-        return _current_plugin
-
-    _current_plugin = x
+    if x:
+        _current_plugin = x
+    return _current_plugin
 
 
 def setup():
@@ -50,9 +49,12 @@ def log(*args, **kwargs):
 @contextlib.contextmanager
 def scope(name):
     global current_logger
+    tmp = (_current_plugin, current_logger)
 
     current_logger = base_logger.getLogger(name)
     current_plugin(name)
+
     yield
-    current_logger = base_logger
-    current_plugin('')
+
+    current_logger = tmp[1]
+    current_plugin(tmp[0])
