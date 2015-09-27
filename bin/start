@@ -19,6 +19,7 @@ if __name__ == "__main__":
     app.config = utils.load_config('config.json')
     app.bot = Lazbot(app.config["slack_token"])
 
+    app.bot.ignore(*app.config.get("ignores", []))
     plugins = app.config.get("plugins", [])
     utils.load_plugins(os.path.join(directory, "src", "plugins"), *plugins)
     try:

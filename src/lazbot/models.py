@@ -42,6 +42,7 @@ class Event(object):
     PONG = "pong"
     PRESENCE_CHANGE = "presence_change"
     REACTION_ADDED = "reaction_added"
+    USER_TYPING = "user_typing"
 
     cleanup_functions = []
 

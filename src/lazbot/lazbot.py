@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 import json
 from ssl import SSLError
 
-from models import Event, User
+from models import Event, User, Channel
 from filter import Filter
 from schedule import ScheduledTask
 from slacker import Slacker
@@ -17,6 +17,7 @@ Slacker.DEFAULT_TIMEOUT = 20
 class Lazbot(object):
     ping_packet = json.dumps({"type": "ping"})
     PING_INTERVAL = 3
+    IGNORED_EVENTS = [Event.PONG, Event.USER_TYPING, Event.PRESENCE_CHANGE]
 
     def __init__(self, token):
         self.last_ping = 0
@@ -26,6 +27,7 @@ class Lazbot(object):
         self.users = {}
         self._setup = []
         self._scheduled_tasks = []
+        self._ignore = []
         self.client = None
 
         self.schedule(self.__cleanup, after=timedelta(minutes=1),
@@ -97,6 +99,12 @@ class Lazbot(object):
             logger.debug("TypeError %r", channel_id)
             return None
 
+    def ignore(self, channel):
+        if isinstance(channel, Channel):
+            channel = channel.name
+
+        self._ignore.append(channel)
+
     def __read_socket(self):
         data = ""
         try:
@@ -118,7 +126,9 @@ class Lazbot(object):
         data = self.__read_socket()
 
         for event in self.__parse_events(data):
-            if event.is_a(Event.PONG, Event.PRESENCE_CHANGE):
+            if event.is_a(*self.IGNORED_EVENTS):
+                continue
+            if event.channel.name in self._ignore:
                 continue
             logger.debug(unicode(event))
             if event.is_a(Event.MESSAGE):
