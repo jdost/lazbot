@@ -16,11 +16,12 @@ def load_plugins(directory, *plugins):
                     glob.glob(os.path.join(directory, "*", "*.py")))]
 
     for plugin in plugins:
+        if not plugin:
+            continue
         logger.current_plugin(plugin)
         with logger.scope(plugin):
             logger.info("Loading plugin: %s", plugin)
             __import__(plugin)
-        logger.current_plugin('')
 
 
 def load_config(config_filename):

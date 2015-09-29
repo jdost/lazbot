@@ -29,6 +29,7 @@ class Lazbot(object):
         self._scheduled_tasks = []
         self._ignore = []
         self.client = None
+        self.stream = True
 
         self.schedule(self.__cleanup, after=timedelta(minutes=1),
                       recurring=True)
@@ -40,9 +41,10 @@ class Lazbot(object):
         ws_url = reply.body['url']
         self.parse_login_data(reply.body)
 
-        logger.info("Connecting socket: %s", ws_url)
-        self.socket = create_connection(ws_url)
-        self.socket.sock.setblocking(0)
+        if self.stream:
+            logger.info("Connecting socket: %s", ws_url)
+            self.socket = create_connection(ws_url)
+            self.socket.sock.setblocking(0)
 
     def start(self):
         self.connect()
@@ -99,11 +101,13 @@ class Lazbot(object):
             logger.debug("TypeError %r", channel_id)
             return None
 
-    def ignore(self, channel):
-        if isinstance(channel, Channel):
-            channel = channel.name
+    def ignore(self, *channels):
+        for channel in channels:
+            if isinstance(channel, Channel):
+                channel = channel.name
 
-        self._ignore.append(channel)
+            logger.info("Ignoring channel %s", channel)
+            self._ignore.append(channel)
 
     def __read_socket(self):
         data = ""
@@ -128,7 +132,7 @@ class Lazbot(object):
         for event in self.__parse_events(data):
             if event.is_a(*self.IGNORED_EVENTS):
                 continue
-            if event.channel.name in self._ignore:
+            if event.channel and event.channel.name in self._ignore:
                 continue
             logger.debug(unicode(event))
             if event.is_a(Event.MESSAGE):
