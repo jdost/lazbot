@@ -14,11 +14,17 @@ class Event(object):
         self.bot = bot
         self.type = raw["type"]
 
-    def __hash__(self):
+    def keys(self):
+        return self.__dict__().keys()
+
+    def __getitem__(self, key):
+        return self.__dict__()[key]
+
+    def __dict__(self):
         return self.raw
 
     def __add__(self, kwargs):
-        hash = self.__hash__()
+        hash = self.__dict__()
         hash.update(kwargs)
         return hash
 

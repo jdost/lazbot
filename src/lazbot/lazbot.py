@@ -219,7 +219,7 @@ class Lazbot(object):
             for event in events:
                 if event not in self._hooks:
                     self._hooks[event] = []
-                self._hooks[event].append(function)
+                self._hooks[event].append(lambda e: function(**e))
 
             return function
 

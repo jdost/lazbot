@@ -29,7 +29,7 @@ class ScheduledTask(object):
 
         if isinstance(when, time):
             today = date.today()
-            now = time(tzinfo=tzutc())
+            now = datetime.now(tzutc()).timetz()
             when = datetime.combine(today if now < when else
                                     today + timedelta(days=1), when)
         elif isinstance(when, date):
@@ -51,9 +51,7 @@ class ScheduledTask(object):
         self.recurring = recurring
         self.done = False
 
-    def run(self, *args, **kwargs):
-        with logger.scope(self._plugin):
-            return self._action(*args, **kwargs)
+        logger.debug(self)
 
     def __ge__(self, other):
         if not isinstance(other, datetime):
@@ -85,13 +83,17 @@ class ScheduledTask(object):
 
         return (other - self.next).total_seconds()
 
+    def __str__(self):
+        return "Running {!s} at {!s}".format(self._action.__name__, self.next)
+
     def __call__(self, quiet=False, *args, **kwargs):
         if quiet:
             pass
-        elif self.recurring:
-            self.next = datetime.now(tzutc()) + self.delta
         elif self.done:
             return
+        elif self.recurring:
+            self.next = datetime.now(tzutc()) + self.delta
+            logger.debug(self)
         else:
             self.done = True
 

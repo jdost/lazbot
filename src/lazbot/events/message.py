@@ -19,7 +19,7 @@ class Message(Event):
         self.text = self.cleanup_text(raw.get("text", ""))
         self.timestamp = raw.get("ts", None)
 
-    def __hash__(self):
+    def __dict__(self):
         return {
             "ts": self.timestamp,
             "user": self.user,
