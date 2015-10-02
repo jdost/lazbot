@@ -101,7 +101,7 @@ class Filter(object):
             return self.handler(**(event + result))
 
     def __eq__(self, target):
-        if self.channels and target.channel not in self.channels:
+        if self.channels and str(target.channel) not in self.channels:
             return False
 
         if self.cmp == "*":

@@ -37,3 +37,10 @@ def build_namespace(name):
     app_namespace = namespace
 
     return namespace
+
+
+def lookup_channel(name):
+    from app import bot
+    for channel in bot.channels.values():
+        if str(channel) == name:
+            return channel

@@ -26,6 +26,12 @@ def fix_channels(client, login_data):
     logger.info("Loaded %d channels", total)
 
 
+def load_channels():
+    channel_list = bot.client.channels.list()
+    for channel in channel_list.body["channels"]:
+        bot.channels[channel["id"]] = Channel(channel)
+
+
 @bot.setup(priority=True)
 def fix_users(client, login_data):
     user_list = login_data["users"]
