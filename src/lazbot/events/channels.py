@@ -19,7 +19,7 @@ class Channel(Event):
         else:
             self.channel = bot.get_channel(self.raw["channel"])
 
-    def __hash__(self):
+    def __dict__(self):
         return {
             "channel": self.channel
         }

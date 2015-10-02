@@ -94,7 +94,7 @@ class Lazbot(object):
         if translate:
             message["text"] = reduce(
                 lambda t, h: h(t),
-                [t[1] for t in self._translations if channel.name in t[0] or
+                [t[1] for t in self._translations if str(channel) in t[0] or
                     t[0] == "*"],
                 message["text"])
 
@@ -219,7 +219,7 @@ class Lazbot(object):
             for event in events:
                 if event not in self._hooks:
                     self._hooks[event] = []
-                self._hooks[event].append(lambda e: function(**e))
+                self._hooks[event].append(lambda e: function(**e.__dict__()))
 
             return function
 

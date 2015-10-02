@@ -14,12 +14,6 @@ class Event(object):
         self.bot = bot
         self.type = raw["type"]
 
-    def keys(self):
-        return self.__dict__().keys()
-
-    def __getitem__(self, key):
-        return self.__dict__()[key]
-
     def __dict__(self):
         return self.raw
 

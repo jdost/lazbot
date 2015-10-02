@@ -19,6 +19,12 @@ for plugin in plugins:
     with logger.scope(plugin):
         locals()[plugin] = __import__(plugin)
 
+
+def connect():
+    app.bot.connect()
+    from ext import load_channels
+    load_channels()
+
 try:
     import readline
 except ImportError:

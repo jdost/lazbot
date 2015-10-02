@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from app import bot
 from lazbot.models import Channel, User
 from lazbot.events import Message
@@ -6,6 +8,9 @@ import lazbot.logger as logger
 
 CHANNEL_CREATE_EVENTS = [events.CHANNEL_CREATED, events.GROUP_JOINED,
                          events.IM_CREATED]
+FIXES = [
+    (u'’', '\'')
+]
 
 
 @bot.setup(priority=True)
@@ -51,3 +56,8 @@ def channel_created(event, **kwargs):
 @Message.cleanup_filter
 def translate_username(txt):
     return txt.replace(repr(bot.user), "@me")
+
+
+@Message.cleanup_filter
+def fix_unicode(txt):
+    return reduce(lambda t, f: t.replace(*f), FIXES, unicode(txt))

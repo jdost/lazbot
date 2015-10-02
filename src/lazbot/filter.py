@@ -30,7 +30,7 @@ class Filter(object):
             "handler": lambda _, s: int(s)
         }
     }
-    TRANSLATION_CAPTURE = r'\<([\[\]a-z\*]+)\:([a-z]+)\>'
+    TRANSLATION_CAPTURE = r'\<([\[\]\{\}\(\)\,\'0-9a-zA-Z\*]+)\:([a-z]+)\>'
 
     @classmethod
     def compile_regex(cls, base_str):
@@ -41,11 +41,16 @@ class Filter(object):
             name = match[1]
             type = match[0]
 
+            translation = cls.translations.get(type, {
+                "regex": type,
+                "handler": lambda m: m,
+            })
+
             new_regex = new_regex.replace(
                 "<{}:{}>".format(type, name),
-                "(?P<{}>{})".format(name, cls.translations[type]["regex"]))
+                "(?P<{}>{})".format(name, translation["regex"]))
 
-            parser.append((name, cls.translations[type]["handler"]))
+            parser.append((name, translation["handler"]))
 
         logger.debug("Compiled regex into: %s", new_regex)
         return re.compile(new_regex), parser
