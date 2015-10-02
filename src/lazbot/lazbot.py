@@ -3,11 +3,12 @@ from datetime import datetime, timedelta
 import json
 from ssl import SSLError
 
-from models import Event, User, Channel
+from models import User, Channel
+from events import events, build
 from filter import Filter
-from schedule import ScheduledTask
 from slacker import Slacker
 from websocket import create_connection
+from dateutil.tz import tzutc
 
 import logger
 
@@ -17,22 +18,28 @@ Slacker.DEFAULT_TIMEOUT = 20
 class Lazbot(object):
     ping_packet = json.dumps({"type": "ping"})
     PING_INTERVAL = 3
-    IGNORED_EVENTS = [Event.PONG, Event.USER_TYPING, Event.PRESENCE_CHANGE]
+    IGNORED_EVENTS = [events.PONG, events.USER_TYPING, events.PRESENCE_CHANGE]
 
     def __init__(self, token):
         self.last_ping = 0
         self.token = token
-        self.filters = []
         self.channels = {}
         self.users = {}
         self._setup = []
         self._scheduled_tasks = []
+        self._translations = []
         self._ignore = []
+        self._hooks = {
+            events.MESSAGE: []
+        }
         self.client = None
         self.stream = True
 
         self.schedule(self.__cleanup, after=timedelta(minutes=1),
                       recurring=True)
+
+        Channel.bind_bot(self)
+        User.bind_bot(self)
 
     def connect(self):
         self.client = Slacker(self.token)
@@ -46,11 +53,13 @@ class Lazbot(object):
             self.socket = create_connection(ws_url)
             self.socket.sock.setblocking(0)
 
+        return reply.body
+
     def start(self):
-        self.connect()
+        login_data = self.connect()
         for name, handler in self._setup:
             with logger.scope(name):
-                handler(self.client)
+                handler(self.client, login_data)
 
         while True:
             self.__read()
@@ -60,7 +69,7 @@ class Lazbot(object):
 
     def parse_login_data(self, login_data):
         self.domain = login_data["team"]["domain"]
-        self.user = User(login_data["self"]["id"], login_data["self"]["name"])
+        self.user = User(login_data["self"])
 
         logger.info("Logged in as %s on %s", self.user, self.domain)
 
@@ -73,7 +82,7 @@ class Lazbot(object):
     def ping(self):
         self.socket.send(self.ping_packet)
 
-    def post(self, channel, **kwargs):
+    def post(self, channel, translate=True, **kwargs):
         message = {
             "channel": channel.id,
             "username": self.user.name,
@@ -81,6 +90,13 @@ class Lazbot(object):
             "link_names": 1
         }
         message.update(kwargs)
+
+        if translate:
+            message["text"] = reduce(
+                lambda t, h: h(t),
+                [t[1] for t in self._translations if channel.name in t[0] or
+                    t[0] == "*"],
+                message["text"])
 
         self.client.chat.post_message(**message)
 
@@ -103,9 +119,6 @@ class Lazbot(object):
 
     def ignore(self, *channels):
         for channel in channels:
-            if isinstance(channel, Channel):
-                channel = channel.name
-
             logger.info("Ignoring channel %s", channel)
             self._ignore.append(channel)
 
@@ -124,7 +137,8 @@ class Lazbot(object):
             return
 
         for data in raw_data.split('\n'):
-            yield Event(self, json.loads(data))
+            data = json.loads(data)
+            yield build(data)(self, data)
 
     def __read(self):
         data = self.__read_socket()
@@ -135,12 +149,13 @@ class Lazbot(object):
             if event.channel and event.channel.name in self._ignore:
                 continue
             logger.debug(unicode(event))
-            if event.is_a(Event.MESSAGE):
-                for filter in self.filters:
-                    filter(event)
+            if event.type not in self._hooks:
+                return
+            for filter in self._hooks[event.type]:
+                filter(event)
 
     def __check_tasks(self):
-        now = datetime.now()
+        now = datetime.now(tzutc())
         for task in self._scheduled_tasks:
             if task <= now:
                 task()
@@ -164,7 +179,7 @@ class Lazbot(object):
                 channels=channel,
                 regex=regex
             )
-            self.filters.append(new_filter)
+            self._hooks[events.MESSAGE].append(new_filter)
 
             return new_filter
 
@@ -179,6 +194,8 @@ class Lazbot(object):
         return decorated(function) if function else decorated
 
     def schedule(self, function=None, when=None, after=None, recurring=False):
+        from schedule import ScheduledTask
+
         def decorated(function):
             task = ScheduledTask(action=function, delta=after,
                                  when=when, recurring=recurring)
@@ -186,3 +203,24 @@ class Lazbot(object):
             return task
 
         return decorated(function) if function else decorated
+
+    def translate(self, channel="*", function=None):
+        if not isinstance(channel, list) and channel != "*":
+            channel = [channel]
+
+        def decorated(function):
+            self._translations.append((channel, function))
+            return function
+
+        return decorated(function) if function else decorated
+
+    def on(self, *events):
+        def decorated(function):
+            for event in events:
+                if event not in self._hooks:
+                    self._hooks[event] = []
+                self._hooks[event].append(function)
+
+            return function
+
+        return decorated

@@ -1,6 +1,4 @@
 #!/bin/env python2
-
-from lazbot import Lazbot
 from lazbot import utils
 from lazbot import logger
 import os
@@ -17,6 +15,8 @@ if __name__ == "__main__":
         logger.setup()
 
     app.config = utils.load_config('config.json')
+
+    from lazbot import Lazbot
     app.bot = Lazbot(app.config["slack_token"])
 
     app.bot.ignore(*app.config.get("ignored", []))

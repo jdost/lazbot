@@ -1,4 +1,4 @@
-from models import Event
+from events import Event
 import logger
 
 import re
