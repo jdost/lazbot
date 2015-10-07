@@ -1,4 +1,3 @@
-from events import Event
 import logger
 
 import re
@@ -71,6 +70,7 @@ class Filter(object):
         self.handler = handler
         self.handlers = None
         self.channels = self._cleanup_channels(channels)
+        self.disabled = False
 
         self._plugin = logger.current_plugin()
 
@@ -78,6 +78,12 @@ class Filter(object):
             self.cmp, self.handlers = self.compile_regex(match_txt)
         else:
             self.cmp = match_txt
+
+    def disable(self):
+        self.disabled = True
+
+    def enable(self):
+        self.disabled = False
 
     def __parse__(self, text):
         if type(self.cmp) is str:
@@ -94,11 +100,12 @@ class Filter(object):
         else:
             return match
 
-    def __call__(self, event=None, **kwargs):
-        if not isinstance(event, Event):
-            return self.handler(**kwargs)
+    def __call__(self, event=None, direct=False, **kwargs):
+        if not event and direct:
+            with logger.scope(self._plugin):
+                return self.handler(**kwargs)
 
-        if not (self == event):
+        if not self.disabled or not (self == event):
             return
 
         result = self.__parse__(event.text)

@@ -6,6 +6,7 @@ import glob
 import logger
 
 from types import ModuleType
+from filter import Filter
 
 
 def load_plugins(directory, *plugins):
@@ -44,3 +45,10 @@ def lookup_channel(name):
     for channel in bot.channels.values():
         if str(channel) == name:
             return channel
+
+
+def disabled(f):
+    if isinstance(f, Filter):
+        f.disable()
+
+    return f

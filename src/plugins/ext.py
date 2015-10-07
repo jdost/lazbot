@@ -9,7 +9,10 @@ import lazbot.logger as logger
 CHANNEL_CREATE_EVENTS = [events.CHANNEL_CREATED, events.GROUP_JOINED,
                          events.IM_CREATED]
 FIXES = [
-    (u'’', '\'')
+    (u'’', '\''),
+    (u'“', '\"'),
+    (u'”', '\"'),
+    (u'…', '...'),
 ]
 
 
@@ -47,14 +50,16 @@ def fix_users(client, login_data):
 
 
 @bot.on(*CHANNEL_CREATE_EVENTS)
-def channel_created(event, **kwargs):
-    channel = event.channel
+def channel_created(channel, **kwargs):
     bot.channels[channel.id] = channel
     logger.info("Added channel %s", channel)
 
 
 @Message.cleanup_filter
 def translate_username(txt):
+    if txt.startswith(repr(bot.user)):
+        _, rest = txt.split(' ', 1)
+        txt = "@me: " + rest
     return txt.replace(repr(bot.user), "@me")
 
 

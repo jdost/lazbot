@@ -57,15 +57,21 @@ class Lazbot(object):
 
     def start(self):
         login_data = self.connect()
+        self.running = True
         for name, handler in self._setup:
             with logger.scope(name):
                 handler(self.client, login_data)
 
-        while True:
+        while self.running:
             self.__read()
             self.__check_tasks()
             self.autoping()
             time.sleep(.1)
+
+    def stop(self):
+        logger.info("Stopping bot")
+        self.running = False
+        self.socket.close()
 
     def parse_login_data(self, login_data):
         self.domain = login_data["team"]["domain"]
