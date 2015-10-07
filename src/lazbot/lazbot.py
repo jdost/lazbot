@@ -110,6 +110,7 @@ class Lazbot(object):
         if type(user_id) is dict:
             user_id = user_id['id']
 
+        user_id = user_id.strip("<>@")
         try:
             return self.users.get(user_id, None)
         except TypeError:
@@ -117,6 +118,9 @@ class Lazbot(object):
             return None
 
     def get_channel(self, channel_id):
+        channel_id = channel_id.strip("<>#")
+
+        logger.debug("Getting %s", channel_id)
         try:
             return self.channels.get(channel_id, None)
         except TypeError:
@@ -125,6 +129,8 @@ class Lazbot(object):
 
     def ignore(self, *channels):
         for channel in channels:
+            if not channel:
+                continue
             logger.info("Ignoring channel %s", channel)
             self._ignore.append(channel)
 
@@ -152,7 +158,7 @@ class Lazbot(object):
         for event in self.__parse_events(data):
             if event.is_a(*self.IGNORED_EVENTS):
                 continue
-            if event.channel and event.channel.name in self._ignore:
+            if event.channel and str(event.channel) in self._ignore:
                 continue
             logger.debug(unicode(event))
             if event.type not in self._hooks:

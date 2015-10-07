@@ -10,11 +10,19 @@ class Filter(object):
     translations = {
         "[username]": {
             "regex": "(<@U[a-zA-Z0-9]+> {0,1})+",
-            "handler": lambda b, s: map(s.split(' '), b.get_user)
+            "handler": lambda b, s: map(b.get_user, s.split(' '))
         },
         "username": {
             "regex": "<@U[a-zA-Z0-9]+>",
             "handler": lambda b, s: b.get_user(s)
+        },
+        "[channel]": {
+            "regex": "(<#C[a-zA-Z0-9]+> {0,1})+",
+            "handler": lambda b, s: map(b.get_channel, s.split(' '))
+        },
+        "channel": {
+            "regex": "<#C[a-zA-Z0-9]+>",
+            "handler": lambda b, s: b.get_channel(s)
         },
         "str": {
             "regex": "[a-zA-Z]+",
@@ -42,7 +50,7 @@ class Filter(object):
 
             translation = cls.translations.get(type, {
                 "regex": type,
-                "handler": lambda m: m,
+                "handler": lambda _, m: m,
             })
 
             new_regex = new_regex.replace(
@@ -94,7 +102,7 @@ class Filter(object):
 
         if self.handlers:
             for name, handler in self.handlers:
-                result[name] = handler(match.group(name))
+                result[name] = handler(self.bot, match.group(name))
 
             return result
         else:
@@ -105,7 +113,7 @@ class Filter(object):
             with logger.scope(self._plugin):
                 return self.handler(**kwargs)
 
-        if not self.disabled or not (self == event):
+        if self.disabled or not (self == event):
             return
 
         result = self.__parse__(event.text)
