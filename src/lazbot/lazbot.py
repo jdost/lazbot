@@ -16,6 +16,21 @@ Slacker.DEFAULT_TIMEOUT = 20
 
 
 class Lazbot(object):
+    """Root class for bot creation and interaction
+
+    Create your bot from this (or extend it if you want to add something)
+    class.  All you need to pass in is the Slack token to use for communicating
+    with the Slack servers.
+
+    :param token: Slack API token to operate under
+
+    Usage: ::
+
+        from lazbot import Lazbot
+
+        bot = Lazbot("my-slack-token")
+
+    """
     ping_packet = json.dumps({"type": "ping"})
     PING_INTERVAL = 3
     IGNORED_EVENTS = [events.PONG, events.USER_TYPING, events.PRESENCE_CHANGE]
@@ -34,6 +49,7 @@ class Lazbot(object):
         }
         self.client = None
         self.stream = True
+        self.can_reconnect = False
 
         self.schedule(self.__cleanup, after=timedelta(minutes=1),
                       recurring=True)
@@ -42,9 +58,28 @@ class Lazbot(object):
         User.bind_bot(self)
 
     def connect(self):
+        """Connect this Slack bot to the Slack servers
+
+        This will initialize the ``client`` attribute to handle regular Slack
+        API calls and if the ``stream`` attribute is True (it is by default) a
+        websocket connection will be opened and begin listening.
+
+        Usage: ::
+
+            bot.stream = False
+
+            login_data = bot.connect()
+
+        """
         self.client = Slacker(self.token)
 
-        reply = self.client.rtm.start()
+        reply = ''
+        try:
+            reply = self.client.rtm.start()
+        except Exception as ex:
+            logger.error("Connection failed: %s", ex)
+            return None
+
         ws_url = reply.body['url']
         self.parse_login_data(reply.body)
 
@@ -56,11 +91,23 @@ class Lazbot(object):
         return reply.body
 
     def start(self):
+        """Start up the bot process
+
+        Calls the ``connect`` method and then (if ``stream`` is set) begins the
+        event loop, reading events off of the socket, running scheduled tasks,
+        and keeping the connection alive.
+        """
         login_data = self.connect()
+        if not login_data:
+            return None
+
         self.running = True
         for name, handler in self._setup:
             with logger.scope(name):
                 handler(self.client, login_data)
+
+        if not self.stream:
+            return
 
         while self.running:
             self.__read()
@@ -69,9 +116,18 @@ class Lazbot(object):
             time.sleep(.1)
 
     def stop(self):
+        """Stop the bot process
+
+        Closes the socket and turns listeners off
+        """
         logger.info("Stopping bot")
         self.running = False
         self.socket.close()
+
+    def reconnect(self):
+        self.stop()
+        if self.can_reconnect:
+            self.start()
 
     def parse_login_data(self, login_data):
         self.domain = login_data["team"]["domain"]
@@ -89,6 +145,9 @@ class Lazbot(object):
         self.socket.send(self.ping_packet)
 
     def post(self, channel, translate=True, **kwargs):
+        """Post message to a channel
+
+        """
         message = {
             "channel": channel.id,
             "username": self.user.name,
@@ -107,6 +166,15 @@ class Lazbot(object):
         self.client.chat.post_message(**message)
 
     def get_user(self, user_id):
+        """Helper function to lookup rich User object
+
+        Slack often provides an unuseful user id for all users, if the
+        ``users`` lookup dictionary is populated, this will return the rich
+        <User> object for the provided ``user_id`` or None if there is no
+        match.
+
+        :param user_id: slack's user id to be looked up
+        """
         if type(user_id) is dict:
             user_id = user_id['id']
 
@@ -118,9 +186,16 @@ class Lazbot(object):
             return None
 
     def get_channel(self, channel_id):
-        channel_id = channel_id.strip("<>#")
+        """Helper function to lookup rich Channel object
 
-        logger.debug("Getting %s", channel_id)
+        Slack often provides an unuseful channel id for all users, if the
+        ``channels`` lookup dictionary is populated, this will return the rich
+        <Channel> object for the provided ``channel_id`` or None if there is no
+        match.
+
+        :param channel_id: slack's channel id to be looked up
+        """
+        channel_id = channel_id.strip("<>#")
         try:
             return self.channels.get(channel_id, None)
         except TypeError:
@@ -128,6 +203,11 @@ class Lazbot(object):
             return None
 
     def ignore(self, *channels):
+        """Channel blacklisting
+
+        Takes a number of channel names and adds them to the blacklist so that
+        all subsequent events on that channel do not trigger hooks.
+        """
         for channel in channels:
             if not channel:
                 continue
@@ -142,6 +222,10 @@ class Lazbot(object):
             if e.errno == 2:
                 return ''
             raise
+        except Exception as ex:
+            logger.error("Websocket issue: %s", ex)
+            return self.reconnect()
+
         return data.rstrip()
 
     def __parse_events(self, raw_data):
@@ -154,6 +238,8 @@ class Lazbot(object):
 
     def __read(self):
         data = self.__read_socket()
+        if not data:
+            return
 
         for event in self.__parse_events(data):
             if event.is_a(*self.IGNORED_EVENTS):
@@ -183,6 +269,31 @@ class Lazbot(object):
                         old_length - new_length)
 
     def listen(self, filter, channel=None, regex=False):
+        """Register a message event listener
+
+        (decorator) Will register the decorated function to be called for all
+        Message events that match the filter settings. The filter should be a
+        string that will either be a literal match (default), a ``*`` to match
+        any string, or a custom regex string (with the ``regex`` flag to True),
+        see <regex logic> for more information on the options for the string.
+        The filter will be checked for all message events that happen and if
+        the logic passes, the data will be passed to the decorated function.
+
+        For more information see #Filter#
+
+        :param filter: message format to match against the message text
+        :param channel: list of channel names that this filter should check
+         against
+        :param regex: boolean flag on whether the filter text should be
+         treated as a regex string
+
+        Usage: ::
+
+            @bot.listen("@me: hi")
+            def greetings(user, channel, **kwargs):
+                bot.post(channel, text="{!s}, greetings".format(user))
+
+        """
         def decorated(function):
             new_filter = Filter(
                 bot=self,
@@ -198,6 +309,22 @@ class Lazbot(object):
         return decorated
 
     def setup(self, function=None, priority=False):
+        """Register a setup hook
+
+        (decorator) Will register the decorated funtion to be called once the
+        bot has connected to the Slack servers.
+
+        :param priority: whether the function is a high priority setup (it gets
+         called with other high priority setup functions)
+
+        Usage: ::
+
+            @bot.setup
+            def greetings(**kwargs):
+                bot_channel = bot.lookup_channel("#bot-channel")
+                bot.post(bot_channel, text="Hey guys")
+
+        """
         def decorated(function):
             self._setup.insert(0 if priority else len(self._setup),
                                (logger.current_plugin(), function))
@@ -206,6 +333,33 @@ class Lazbot(object):
         return decorated(function) if function else decorated
 
     def schedule(self, function=None, when=None, after=None, recurring=False):
+        """Register a scheduled task
+
+        (decorator) Will register the decorated function (or can register a
+        function normally) to be run at a specific time, after a specific time
+        has elapsed, or a mixture if set to recurring.
+
+        :param function: function to be called when task is
+         activated, if not set, this will return a decorator
+        :param when: (optional) ``date``, ``time``, or ``datetime`` object for
+         the time the task will get run at (if a ``date``, the time will be
+         midnight, if a ``time`` it will be the next occurance of that time)
+        :param after: (optional) ``timedelta`` for the amount of time until the
+         task will be run from now
+        :param recurring: if set to True, the task will be run again after it
+         is completed, the ``after`` param is required for this
+
+        Usage: ::
+
+            from datetime import timedelta, time
+
+            @bot.schedule(when=time(12, 0, 0), after=timedelta(hours=24),
+                          recurring=True)
+            def lunchtime(**kwargs):
+                lunch_channel = bot.lookup_channel("#lunch-reminder")
+                bot.post(lunch_channel, text="Lunch time")
+
+        """
         from schedule import ScheduledTask
 
         def decorated(function):
@@ -217,6 +371,23 @@ class Lazbot(object):
         return decorated(function) if function else decorated
 
     def translate(self, channel="*", function=None):
+        """Register a translation function
+
+        (decorator) Will register the decorated function in the series of
+        translation functions that get called on message posts.  These
+        functions are meant for modifying messages in specific channels (or
+        all channels).
+
+        :param channel: single or list of channel names to apply this
+         translator to
+
+        Usage: ::
+
+            @bot.translate(channel="#bot_test")
+            def self_reference(text):
+                return text.replace(bot.user, "me")
+
+        """
         if not isinstance(channel, list) and channel != "*":
             channel = [channel]
 
@@ -226,7 +397,28 @@ class Lazbot(object):
 
         return decorated(function) if function else decorated
 
-    def on(self, *events):
+    def on(self, channel="*", *events):
+        """Register a generic event listener
+
+        (decorator) Will register the decorated function as a hook for the
+        specified event(s).  When the event is triggered, the handler will get
+        a keyworded representation of the event (see the targetted events for
+        what these could be).
+
+        :param events: event types as specified in ##events##
+
+        Usage: ::
+
+            typing_count = {}
+
+            @bot.on(events.USER_TYPING)
+            def count_typing(user, **kwargs):
+                if user not in typing_count:
+                    typing_count[user] = 0
+
+                typing_count[user] += 1
+
+        """
         def decorated(function):
             for event in events:
                 if event not in self._hooks:

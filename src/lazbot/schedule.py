@@ -3,6 +3,7 @@ from datetime import datetime, time, date, timedelta, tzinfo
 from dateutil.tz import tzutc
 import logger
 
+identity = lambda x: x
 tz_config = {
     "utc_offset": config.get("timezone", {}).get("offset", -5),
     "dst": config.get("timezone", {}).get("dst", True),
@@ -22,8 +23,36 @@ class tz(tzinfo):
 
 
 class ScheduledTask(object):
-    def __init__(self, action=lambda x: x,
-                 delta=None, when=None, recurring=None):
+    def __init__(self, action=None, delta=None, when=None, recurring=None):
+        """ Setup one time or recurring scheduled task
+
+        Will attempt to figure out the next time the action should be run and
+        return a task to be added to the pool.  If an absolute time is provided
+        it will attempt to figure out the next time that time will occur, the
+        time can be any of ``date``, ``time``, or ``datetime``.  If it is in
+        the past, it will figure out the next logical time to run it.
+
+        If no absolute time is provided, the relative time from when the task
+        is scheduled will be used.
+
+        If recurring is ``True``.  A relative value will be calculated if not
+        provided and will be added to the current time for the next run after
+        each time the task is run.  So if it runs at midnight and then a delta
+        of 1 hour, it will run every hour from midnight on.
+
+        Example: ::
+            task = ScheduledTask(action=lambda: print "o'clock",
+                                 delta=timedelta(hours=1), when=time(0, 0, 0),
+                                 recurring=True)
+
+        This example will print ``o'clock`` every hour after midnight.
+
+        :param action: function to be called when the task is run
+        :param delta: (optional) relative ``timedelta`` for the time scheduling
+        :param when: (optional) absolute time for when to run this task
+        :param recurring: boolean flag for whether this task should be run more
+         than once
+        """
         if not when and not delta:
             raise "Need a time or time span to schedule at"
 
@@ -46,7 +75,7 @@ class ScheduledTask(object):
             self.delta = delta
             self.next = when
 
-        self._action = action
+        self._action = action if action else identity
         self._plugin = logger.current_plugin()
         self.recurring = recurring
         self.done = False

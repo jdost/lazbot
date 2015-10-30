@@ -13,8 +13,10 @@ def load_plugins(directory, *plugins):
     sys.path.insert(0, os.path.join(directory))
     if not len(plugins):
         plugins = [p.split('/')[-1][:-3] for p in
-                   (glob.glob(os.path.join(directory, "*.py")) +
-                    glob.glob(os.path.join(directory, "*", "*.py")))]
+                   glob.glob(os.path.join(directory, "*.py"))]
+        plugins += [p.split('/')[-1] for p in
+                    glob.glob(os.path.join(directory, "*")) if
+                    os.path.isdir(p)]
 
     for plugin in plugins:
         if not plugin:

@@ -7,6 +7,11 @@ RegexObject = type(re.compile("regex object"))
 
 
 class Filter(object):
+    ''' Logic wrapper for message events
+
+    Filter provides a number of helpers to make message filtering, matching,
+    and parsing easier.
+    '''
     translations = {
         "[username]": {
             "regex": "(<@U[a-zA-Z0-9]+> {0,1})+",
@@ -41,8 +46,26 @@ class Filter(object):
 
     @classmethod
     def compile_regex(cls, base_str):
+        ''' compile filter regex into regex matcher
+
+        Converts the provided string into a RegexObject and a Parser.  This
+        will convert the string into a normal RegexObject.  It will first
+        attempt to convert flask-like capture group helpers into Regex capture
+        groups.  It will also add translation helpers to the returned Parser
+        object to provide some post processing of the special captures.
+
+        Provided captures include:
+
+        * ``int`` - looks for numeric values and will convert into a number
+        * ``username`` - looks for the Slack form of username identifiers and
+          attempts to lookup the `User` object
+        * ``[username]`` - like ``username`` but looks for a list of them
+        * ``channel`` - looks for the Slack form of channel identifiers and
+          attempts to lookup the `Channel` object
+        * ``[channel]`` - like ``channel`` but looks for a list of them
+        '''
         new_regex = "^" + base_str + "$"
-        parser = []
+        parser = Parser()
 
         for match in re.findall(cls.TRANSLATION_CAPTURE, base_str):
             name = match[1]
@@ -57,7 +80,7 @@ class Filter(object):
                 "<{}:{}>".format(type, name),
                 "(?P<{}>{})".format(name, translation["regex"]))
 
-            parser.append((name, translation["handler"]))
+            parser.add(name, translation["handler"])
 
         logger.debug("Compiled regex into: %s", new_regex)
         return re.compile(new_regex), parser
@@ -72,41 +95,42 @@ class Filter(object):
         else:
             return [str(channels)]
 
-    def __init__(self, bot, match_txt='', handler=identity, channels=None,
+    def __init__(self, bot, match_txt='', handler=None, channels=None,
                  regex=False):
         self.bot = bot
-        self.handler = handler
-        self.handlers = None
+        self.handler = handler if handler else identity
+        self.parser = None
         self.channels = self._cleanup_channels(channels)
         self.disabled = False
 
         self._plugin = logger.current_plugin()
 
         if regex:
-            self.cmp, self.handlers = self.compile_regex(match_txt)
+            self.cmp, self.parser = self.compile_regex(match_txt)
         else:
             self.cmp = match_txt
 
     def disable(self):
+        ''' Disable message matching
+
+        Will disable the ``Filter`` from matching any messages
+        '''
         self.disabled = True
 
     def enable(self):
+        ''' Enable message matching
+
+        Will enable the ``Filter`` to attempt to match messages
+        '''
         self.disabled = False
 
     def __parse__(self, text):
         if type(self.cmp) is str:
             return {}
 
-        result = {}
         match = self.cmp.match(text)
 
-        if self.handlers:
-            for name, handler in self.handlers:
-                result[name] = handler(self.bot, match.group(name))
-
-            return result
-        else:
-            return match
+        return self.parser(self.bot, match) if self.parser else match
 
     def __call__(self, event=None, direct=False, **kwargs):
         if not event and direct:
@@ -130,3 +154,18 @@ class Filter(object):
             return self.cmp.match(target.text)
         else:
             return self.cmp == target.text
+
+
+class Parser(object):
+    def __init__(self):
+        self.parsers = []
+
+    def add(self, name, translation):
+        self.parsers.append((name, translation))
+
+    def __call__(self, bot, match):
+        result = {}
+        for name, handler in self.parsers:
+            result[name] = handler(bot, match.group(name))
+
+        return result
