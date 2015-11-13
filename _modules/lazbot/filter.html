@@ -1,0 +1,299 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>lazbot.filter &mdash; La-Z-Bot 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="La-Z-Bot 0.1 documentation" href="../../index.html" />
+    <link rel="up" title="lazbot" href="../lazbot.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">La-Z-Bot 0.1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../lazbot.html" accesskey="U">lazbot</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for lazbot.filter</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">logger</span>
+
+<span class="kn">import</span> <span class="nn">re</span>
+
+<span class="n">identity</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span>
+<span class="n">RegexObject</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&quot;regex object&quot;</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="Filter"><a class="viewcode-back" href="../../api/filter.html#lazbot.filter.Filter">[docs]</a><span class="k">class</span> <span class="nc">Filter</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Logic wrapper for message events</span>
+
+<span class="sd">    Filter provides a number of helpers to make message filtering, matching,</span>
+<span class="sd">    and parsing easier.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">translations</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&quot;[username]&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s">&quot;regex&quot;</span><span class="p">:</span> <span class="s">&quot;(&lt;@U[a-zA-Z0-9]+&gt; {0,1})+&quot;</span><span class="p">,</span>
+            <span class="s">&quot;handler&quot;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">b</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="nb">map</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">get_user</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">))</span>
+        <span class="p">},</span>
+        <span class="s">&quot;username&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s">&quot;regex&quot;</span><span class="p">:</span> <span class="s">&quot;&lt;@U[a-zA-Z0-9]+&gt;&quot;</span><span class="p">,</span>
+            <span class="s">&quot;handler&quot;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">b</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">b</span><span class="o">.</span><span class="n">get_user</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="p">},</span>
+        <span class="s">&quot;[channel]&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s">&quot;regex&quot;</span><span class="p">:</span> <span class="s">&quot;(&lt;#C[a-zA-Z0-9]+&gt; {0,1})+&quot;</span><span class="p">,</span>
+            <span class="s">&quot;handler&quot;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">b</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="nb">map</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">get_channel</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">))</span>
+        <span class="p">},</span>
+        <span class="s">&quot;channel&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s">&quot;regex&quot;</span><span class="p">:</span> <span class="s">&quot;&lt;#C[a-zA-Z0-9]+&gt;&quot;</span><span class="p">,</span>
+            <span class="s">&quot;handler&quot;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">b</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">b</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="p">},</span>
+        <span class="s">&quot;str&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s">&quot;regex&quot;</span><span class="p">:</span> <span class="s">&quot;[a-zA-Z]+&quot;</span><span class="p">,</span>
+            <span class="s">&quot;handler&quot;</span><span class="p">:</span> <span class="n">identity</span>
+        <span class="p">},</span>
+        <span class="s">&quot;*&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s">&quot;regex&quot;</span><span class="p">:</span> <span class="s">&quot;[a-zA-Z0-9_ \+\-]+&quot;</span><span class="p">,</span>
+            <span class="s">&quot;handler&quot;</span><span class="p">:</span> <span class="n">identity</span>
+        <span class="p">},</span>
+        <span class="s">&quot;int&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s">&quot;regex&quot;</span><span class="p">:</span> <span class="s">&quot;[0-9]+&quot;</span><span class="p">,</span>
+            <span class="s">&quot;handler&quot;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">_</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="p">},</span>
+        <span class="s">&quot;[int]&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s">&quot;regex&quot;</span><span class="p">:</span> <span class="s">&quot;([0-9]+ {0,1})+&quot;</span><span class="p">,</span>
+            <span class="s">&quot;handler&quot;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">_</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">))</span>
+        <span class="p">},</span>
+    <span class="p">}</span>
+    <span class="n">TRANSLATION_CAPTURE</span> <span class="o">=</span> <span class="s">r&#39;\&lt;([\[\]\{\}\(\)\,</span><span class="se">\&#39;</span><span class="s">0-9a-zA-Z\*]+)\:([a-z]+)\&gt;&#39;</span>
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="Filter.compile_regex"><a class="viewcode-back" href="../../api/filter.html#lazbot.filter.Filter.compile_regex">[docs]</a>    <span class="k">def</span> <span class="nf">compile_regex</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">base_str</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; compile filter regex into regex matcher</span>
+
+<span class="sd">        Converts the provided string into a RegexObject and a Parser.  This</span>
+<span class="sd">        will convert the string into a normal RegexObject.  It will first</span>
+<span class="sd">        attempt to convert flask-like capture group helpers into Regex capture</span>
+<span class="sd">        groups.  It will also add translation helpers to the returned Parser</span>
+<span class="sd">        object to provide some post processing of the special captures.</span>
+
+<span class="sd">        Provided captures include:</span>
+
+<span class="sd">        * ``int`` - looks for numeric values and will convert into a number</span>
+<span class="sd">        * ``username`` - looks for the Slack form of username identifiers and</span>
+<span class="sd">          attempts to lookup the `User` object</span>
+<span class="sd">        * ``[username]`` - like ``username`` but looks for a list of them</span>
+<span class="sd">        * ``channel`` - looks for the Slack form of channel identifiers and</span>
+<span class="sd">          attempts to lookup the `Channel` object</span>
+<span class="sd">        * ``[channel]`` - like ``channel`` but looks for a list of them</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">new_regex</span> <span class="o">=</span> <span class="s">&quot;^&quot;</span> <span class="o">+</span> <span class="n">base_str</span> <span class="o">+</span> <span class="s">&quot;$&quot;</span>
+        <span class="n">parser</span> <span class="o">=</span> <span class="n">Parser</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">match</span> <span class="ow">in</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">cls</span><span class="o">.</span><span class="n">TRANSLATION_CAPTURE</span><span class="p">,</span> <span class="n">base_str</span><span class="p">):</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">match</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="nb">type</span> <span class="o">=</span> <span class="n">match</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+            <span class="n">translation</span> <span class="o">=</span> <span class="n">cls</span><span class="o">.</span><span class="n">translations</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">type</span><span class="p">,</span> <span class="p">{</span>
+                <span class="s">&quot;regex&quot;</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span>
+                <span class="s">&quot;handler&quot;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">_</span><span class="p">,</span> <span class="n">m</span><span class="p">:</span> <span class="n">m</span><span class="p">,</span>
+            <span class="p">})</span>
+
+            <span class="n">new_regex</span> <span class="o">=</span> <span class="n">new_regex</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
+                <span class="s">&quot;&lt;{}:{}&gt;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">,</span> <span class="n">name</span><span class="p">),</span>
+                <span class="s">&quot;(?P&lt;{}&gt;{})&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">translation</span><span class="p">[</span><span class="s">&quot;regex&quot;</span><span class="p">]))</span>
+
+            <span class="n">parser</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">translation</span><span class="p">[</span><span class="s">&quot;handler&quot;</span><span class="p">])</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Compiled regex into: </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">new_regex</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">new_regex</span><span class="p">),</span> <span class="n">parser</span>
+</div>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_cleanup_channels</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">channels</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">channels</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">channels</span><span class="p">)</span> <span class="o">==</span> <span class="nb">list</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span> <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">channels</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">channels</span><span class="p">)]</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bot</span><span class="p">,</span> <span class="n">match_txt</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">handler</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">channels</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">regex</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bot</span> <span class="o">=</span> <span class="n">bot</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">handler</span> <span class="o">=</span> <span class="n">handler</span> <span class="k">if</span> <span class="n">handler</span> <span class="k">else</span> <span class="n">identity</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">channels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cleanup_channels</span><span class="p">(</span><span class="n">channels</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">disabled</span> <span class="o">=</span> <span class="bp">False</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_plugin</span> <span class="o">=</span> <span class="n">logger</span><span class="o">.</span><span class="n">current_plugin</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">regex</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cmp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">parser</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compile_regex</span><span class="p">(</span><span class="n">match_txt</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cmp</span> <span class="o">=</span> <span class="n">match_txt</span>
+
+<div class="viewcode-block" id="Filter.disable"><a class="viewcode-back" href="../../api/filter.html#lazbot.filter.Filter.disable">[docs]</a>    <span class="k">def</span> <span class="nf">disable</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Disable message matching</span>
+
+<span class="sd">        Will disable the ``Filter`` from matching any messages</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">disabled</span> <span class="o">=</span> <span class="bp">True</span>
+</div>
+<div class="viewcode-block" id="Filter.enable"><a class="viewcode-back" href="../../api/filter.html#lazbot.filter.Filter.enable">[docs]</a>    <span class="k">def</span> <span class="nf">enable</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Enable message matching</span>
+
+<span class="sd">        Will enable the ``Filter`` to attempt to match messages</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">disabled</span> <span class="o">=</span> <span class="bp">False</span>
+</div>
+    <span class="k">def</span> <span class="nf">__parse__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cmp</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{}</span>
+
+        <span class="n">match</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmp</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bot</span><span class="p">,</span> <span class="n">match</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parser</span> <span class="k">else</span> <span class="n">match</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">direct</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">event</span> <span class="ow">and</span> <span class="n">direct</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">logger</span><span class="o">.</span><span class="n">scope</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_plugin</span><span class="p">):</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">handler</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">disabled</span> <span class="ow">or</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span> <span class="o">==</span> <span class="n">event</span><span class="p">):</span>
+            <span class="k">return</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__parse__</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">logger</span><span class="o">.</span><span class="n">scope</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_plugin</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">handler</span><span class="p">(</span><span class="o">**</span><span class="p">(</span><span class="n">event</span> <span class="o">+</span> <span class="n">result</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">channels</span> <span class="ow">and</span> <span class="nb">str</span><span class="p">(</span><span class="n">target</span><span class="o">.</span><span class="n">channel</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmp</span> <span class="o">==</span> <span class="s">&quot;*&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cmp</span><span class="p">,</span> <span class="n">RegexObject</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmp</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">target</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmp</span> <span class="o">==</span> <span class="n">target</span><span class="o">.</span><span class="n">text</span>
+
+</div>
+<span class="k">class</span> <span class="nc">Parser</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parsers</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">translation</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parsers</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">name</span><span class="p">,</span> <span class="n">translation</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bot</span><span class="p">,</span> <span class="n">match</span><span class="p">):</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">handler</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parsers</span><span class="p">:</span>
+            <span class="n">result</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">handler</span><span class="p">(</span><span class="n">bot</span><span class="p">,</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">result</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="../../_static/logo.jpg" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+<p>
+<iframe src="http://ghbtns.com/github-btn.html?user=jdost&repo=lazbot&type=watch&count=true&size=large"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/event_hooks.html">Event Hooks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/bot.html">Framework API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/filter.html">Filter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/models.html">Framework Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/task.html">Scheduled Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../plugins/about.html">About Plugin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../plugins/admin.html">Admin Plugin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../plugins/ext.html">Ext Plugin</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, jdost.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.2.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.6.3</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

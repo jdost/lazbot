@@ -1,0 +1,177 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Quickstart &mdash; La-Z-Bot 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="La-Z-Bot 0.1 documentation" href="../index.html" />
+    <link rel="next" title="Event Hooks" href="event_hooks.html" />
+    <link rel="prev" title="Introduction" href="introduction.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="event_hooks.html" title="Event Hooks"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="introduction.html" title="Introduction"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">La-Z-Bot 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="quickstart">
+<span id="id1"></span><h1>Quickstart<a class="headerlink" href="#quickstart" title="Permalink to this headline">¶</a></h1>
+<p>Getting your own bot up and running is very simple.  In the root of the project
+directory, create a <tt class="docutils literal"><span class="pre">config.json</span></tt> file.  There is an example included in
+<tt class="docutils literal"><span class="pre">etc/config.json</span></tt>.  The only required field to get it started is a slack token, it
+can either be for an existing <a class="reference external" href="https://api.slack.com/web#authentication">user</a> or you can create a new bot <a class="reference external" href="https://my.slack.com/services/new/bot">integration</a>.</p>
+<p>Once you have a token, place it in the config and try to start your bot with the
+<tt class="docutils literal"><span class="pre">bin/start</span></tt> binary.  This should have the bot join the global default channel
+(usually named <tt class="docutils literal"><span class="pre">#general</span></tt>).  You can then invite the bot into other channels.</p>
+<div class="section" id="plugins">
+<h2>Plugins<a class="headerlink" href="#plugins" title="Permalink to this headline">¶</a></h2>
+<p>In order to add plugins to the bot, you will define a <tt class="docutils literal"><span class="pre">plugins</span></tt> array in the json
+package.  It should be an array of strings that are names of the plugin modules to
+load.  Included in this repository are the <a class="reference internal" href="../plugins/ext.html#ext"><em>Ext Plugin</em></a>, <a class="reference internal" href="../plugins/about.html#about"><em>About Plugin</em></a>, and <a class="reference internal" href="../plugins/admin.html#admin"><em>Admin Plugin</em></a> plugins.  If
+you want to create your own plugin you should add a file to either the main
+PYTHONPATH or into the <tt class="docutils literal"><span class="pre">src/plugins/</span></tt> folder.  This plugin should import the
+<tt class="docutils literal"><span class="pre">bot</span></tt> attribute from the injected <tt class="docutils literal"><span class="pre">app</span></tt> module.  This attribute is a <tt class="docutils literal"><span class="pre">Lazbot</span></tt>
+instance and offers various decorators to tie into event hooks in the bot.  A simple
+example would be something like:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">app</span> <span class="kn">import</span> <span class="n">bot</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+
+<span class="nd">@bot.listen</span><span class="p">(</span><span class="s">&quot;what time is it?&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">tell_time</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+   <span class="n">bot</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span>
+      <span class="n">text</span><span class="o">=</span><span class="s">&quot;{!s} it is {!s}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">time</span><span class="p">())</span>
+   <span class="p">)</span>
+</pre></div>
+</div>
+<p>This will listen for anyone posting in any channel the bot is in to say <tt class="docutils literal"><span class="pre">what</span> <span class="pre">time</span>
+<span class="pre">is</span> <span class="pre">it?</span></tt> and the bot will respond.</p>
+<p>If you want to create more complex plugins, you can include the plugin as a
+directory with a <tt class="docutils literal"><span class="pre">__init__.py</span></tt> file that handles importing the various parts.</p>
+</div>
+<div class="section" id="config">
+<h2>Config<a class="headerlink" href="#config" title="Permalink to this headline">¶</a></h2>
+<p>If you want to add in additional configuration for your plugins, the <tt class="docutils literal"><span class="pre">config.json</span></tt>
+dictionary is included in the <tt class="docutils literal"><span class="pre">app</span></tt> module as <tt class="docutils literal"><span class="pre">config</span></tt>.  You just need to import
+this along with the <tt class="docutils literal"><span class="pre">bot</span></tt> attribute and read from it.  The included plugins have
+their own additional configuration that you can read about on each page.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.jpg" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+<p>
+<iframe src="http://ghbtns.com/github-btn.html?user=jdost&repo=lazbot&type=watch&count=true&size=large"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Quickstart</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#plugins">Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#config">Config</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="event_hooks.html">Event Hooks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/bot.html">Framework API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/filter.html">Filter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/models.html">Framework Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/task.html">Scheduled Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins/about.html">About Plugin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins/admin.html">Admin Plugin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins/ext.html">Ext Plugin</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, jdost.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.2.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.6.3</a>
+      
+      |
+      <a href="../_sources/guide/quickstart.txt"
+          rel="nofollow">Page source</a></li>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Framework Models &mdash; La-Z-Bot 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="La-Z-Bot 0.1 documentation" href="../index.html" />
+    <link rel="next" title="Scheduled Tasks" href="task.html" />
+    <link rel="prev" title="Filter" href="filter.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="task.html" title="Scheduled Tasks"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="filter.html" title="Filter"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">La-Z-Bot 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-lazbot.models">
+<span id="framework-models"></span><span id="lib-models"></span><h1>Framework Models<a class="headerlink" href="#module-lazbot.models" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="user">
+<h2>User<a class="headerlink" href="#user" title="Permalink to this headline">¶</a></h2>
+<p>A convenience wrapper for the <a class="reference external" href="https://api.slack.com/types/user">Slack User</a> model.</p>
+<dl class="class">
+<dt id="lazbot.models.User">
+<em class="property">class </em><tt class="descclassname">lazbot.models.</tt><tt class="descname">User</tt><big>(</big><em>data</em><big>)</big><a class="reference internal" href="../_modules/lazbot/models.html#User"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lazbot.models.User" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="channel">
+<h2>Channel<a class="headerlink" href="#channel" title="Permalink to this headline">¶</a></h2>
+<p>A convenience wrapper for Slack&#8217;s <a class="reference external" href="https://api.slack.com/types/group">group</a>, <a class="reference external" href="https://api.slack.com/types/channel">channel</a>, and <a class="reference external" href="https://api.slack.com/types/im">im</a> models.  In Lazbot,
+these are all seen as the same (or similar enough) to act as one model.</p>
+<dl class="class">
+<dt id="lazbot.models.Channel">
+<em class="property">class </em><tt class="descclassname">lazbot.models.</tt><tt class="descname">Channel</tt><big>(</big><em>data</em><big>)</big><a class="reference internal" href="../_modules/lazbot/models.html#Channel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lazbot.models.Channel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.jpg" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+<p>
+<iframe src="http://ghbtns.com/github-btn.html?user=jdost&repo=lazbot&type=watch&count=true&size=large"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../guide/introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/event_hooks.html">Event Hooks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bot.html">Framework API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filter.html">Filter</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Framework Models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#user">User</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#channel">Channel</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="task.html">Scheduled Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins/about.html">About Plugin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins/admin.html">Admin Plugin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins/ext.html">Ext Plugin</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, jdost.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.2.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.6.3</a>
+      
+      |
+      <a href="../_sources/api/models.txt"
+          rel="nofollow">Page source</a></li>
+    </div>
+
+    
+
+    
+  </body>
+</html>

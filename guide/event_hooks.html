@@ -1,0 +1,212 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Event Hooks &mdash; La-Z-Bot 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="La-Z-Bot 0.1 documentation" href="../index.html" />
+    <link rel="next" title="Framework API" href="../api/bot.html" />
+    <link rel="prev" title="Quickstart" href="quickstart.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../api/bot.html" title="Framework API"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="quickstart.html" title="Quickstart"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">La-Z-Bot 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="event-hooks">
+<span id="hooks"></span><h1>Event Hooks<a class="headerlink" href="#event-hooks" title="Permalink to this headline">¶</a></h1>
+<p>The Lazbot framework handles the inter workings of connecting to and streaming the
+events from the Slack servers.  In order to connect to the event stream that the
+framework manages, you have to register event hooks with the main bot instance.  The
+bot has a number of event hooks that work with either the internal event sequence
+or from the slack event stream.</p>
+<div class="section" id="general-style">
+<h2>General Style<a class="headerlink" href="#general-style" title="Permalink to this headline">¶</a></h2>
+<p>All of the hooks provide a range of arguments and it is advised to add in a
+<a class="reference external" href="https://docs.python.org/2/glossary.html#term-parameter">var-keyword</a> in order to allow for additional arguments being added to not cause an
+error when the trigger is called.</p>
+<p>For all slack event hooks, the decorator will take a <tt class="docutils literal"><span class="pre">channel</span></tt> keyword argument
+that will define a whitelist for which channels the event will be triggered from.</p>
+</div>
+<div class="section" id="messages">
+<h2>Messages<a class="headerlink" href="#messages" title="Permalink to this headline">¶</a></h2>
+<p>The main event hook you will be using is the chat message hook.  This is the
+<tt class="docutils literal"><span class="pre">bot.listen</span></tt> decorator and provides some powerful parsing and filtering to control
+the scope in which the actions of the hook are triggered.  The only required
+argument for the decoration is a filter string.  The filter string can be a literal
+string that will be matched against, a literal <tt class="docutils literal"><span class="pre">&quot;*&quot;</span></tt> that will match all strings,
+or a regex string.  If using a regex string, you must also set the <tt class="docutils literal"><span class="pre">regex</span></tt> flag
+to <tt class="docutils literal"><span class="pre">True</span></tt>.</p>
+<div class="section" id="advanced-regex">
+<h3>Advanced Regex<a class="headerlink" href="#advanced-regex" title="Permalink to this headline">¶</a></h3>
+<p>The <tt class="docutils literal"><span class="pre">regex</span></tt> variant of the filter strings uses the built in <a class="reference external" href="https://docs.python.org/2/library/re.html">re</a> module to compile
+the string into a regex object and match against it.  It will attempt to extract the
+matched groups in the provided string.</p>
+<p>Also provided are a number of built in custom groups and parsers in the <a class="reference internal" href="../api/filter.html#filter"><em>Filter</em></a>
+class.  The syntax for them is like the <a class="reference external" href="http://flask.pocoo.org/">flask</a> style: <tt class="docutils literal"><span class="pre">&lt;username:them&gt;</span></tt>.  This
+will then provide a <tt class="docutils literal"><span class="pre">User</span></tt> object under the <tt class="docutils literal"><span class="pre">them</span></tt> keyword in the event call.
+The names for these should not collide with the already passed in arguments used
+(or they will define over them).</p>
+<p>To see the various provided types, see the <a class="reference internal" href="../api/filter.html#filter"><em>Filter</em></a> documentation.  If you want to
+add your own, you just need to:</p>
+<div class="highlight-python"><div class="highlight"><pre>from lazbot import Filter
+from datetime import time
+
+Filter.translations[&quot;time&quot;] = {
+   &quot;regex&quot;: &quot;[0-9]{1,2}:[0-5][0-9]&quot;,
+   &quot;handler: lambda _, s: time(*map(int, s.split(&#39;:&#39;)))
+}
+</pre></div>
+</div>
+<p>This would let you add a <tt class="docutils literal"><span class="pre">&lt;time:when&gt;</span></tt> regex and it will return a rich
+<tt class="docutils literal"><span class="pre">datetime.time</span></tt> object (rather than a string).</p>
+</div>
+</div>
+<div class="section" id="setup">
+<h2>Setup<a class="headerlink" href="#setup" title="Permalink to this headline">¶</a></h2>
+<p>If you want to perform actions after the bot has connected to Slack, you can use the
+<tt class="docutils literal"><span class="pre">setup</span></tt> decorator.  This registers the decorated function to be called after the
+bot has connected to slack.  It will provide the initial <a class="reference external" href="https://api.slack.com/methods/rtm.start">rtm.start</a> response and the
+internal <a class="reference external" href="https://github.com/os/slacker">slacker</a> object as arguments.</p>
+</div>
+<div class="section" id="scheduled-tasks">
+<h2>Scheduled Tasks<a class="headerlink" href="#scheduled-tasks" title="Permalink to this headline">¶</a></h2>
+<p>There is a built in scheduling system for creating time delayed actions either once
+or on a recurring schedule.  The decorator for this can also be called as a regular
+function.  The scheduling can use either a relative <tt class="docutils literal"><span class="pre">timedelta</span></tt> object with the
+<tt class="docutils literal"><span class="pre">after</span></tt> keyword or use an absolute value with the <tt class="docutils literal"><span class="pre">when</span></tt> keyword.  If the
+<tt class="docutils literal"><span class="pre">recurring</span></tt> flag is set to true, the creator will attempt to extrapolate the
+interval in which to call the task again until the end of the execution or it is
+called to be stopped.  The decorated function is actually a rich <a class="reference internal" href="../api/task.html#task"><em>Scheduled Tasks</em></a> object with
+various methods to control the execution of the task.</p>
+</div>
+<div class="section" id="generic-events">
+<h2>Generic Events<a class="headerlink" href="#generic-events" title="Permalink to this headline">¶</a></h2>
+<p>There is a generic <tt class="docutils literal"><span class="pre">on</span></tt> decorator that will trigger on the defined events in
+the decorator.  This can be any of the events defined in the Slack RTM
+<a class="reference external" href="https://api.slack.com/events">documentation</a>.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.jpg" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+<p>
+<iframe src="http://ghbtns.com/github-btn.html?user=jdost&repo=lazbot&type=watch&count=true&size=large"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Event Hooks</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#general-style">General Style</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#messages">Messages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#setup">Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#scheduled-tasks">Scheduled Tasks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#generic-events">Generic Events</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api/bot.html">Framework API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/filter.html">Filter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/models.html">Framework Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/task.html">Scheduled Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins/about.html">About Plugin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins/admin.html">Admin Plugin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins/ext.html">Ext Plugin</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, jdost.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.2.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.6.3</a>
+      
+      |
+      <a href="../_sources/guide/event_hooks.txt"
+          rel="nofollow">Page source</a></li>
+    </div>
+
+    
+
+    
+  </body>
+</html>

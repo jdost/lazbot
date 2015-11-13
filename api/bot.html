@@ -1,0 +1,389 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Framework API &mdash; La-Z-Bot 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="La-Z-Bot 0.1 documentation" href="../index.html" />
+    <link rel="next" title="Filter" href="filter.html" />
+    <link rel="prev" title="Event Hooks" href="../guide/event_hooks.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="filter.html" title="Filter"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../guide/event_hooks.html" title="Event Hooks"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">La-Z-Bot 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-lazbot">
+<span id="framework-api"></span><span id="lib-api"></span><h1>Framework API<a class="headerlink" href="#module-lazbot" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="lazbot.Lazbot">
+<em class="property">class </em><tt class="descclassname">lazbot.</tt><tt class="descname">Lazbot</tt><big>(</big><em>token</em><big>)</big><a class="headerlink" href="#lazbot.Lazbot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Root class for bot creation and interaction</p>
+<p>Create your bot from this (or extend it if you want to add something)
+class.  All you need to pass in is the Slack token to use for communicating
+with the Slack servers.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>token</strong> &#8211; Slack API token to operate under</td>
+</tr>
+</tbody>
+</table>
+<p>Usage:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">lazbot</span> <span class="kn">import</span> <span class="n">Lazbot</span>
+
+<span class="n">bot</span> <span class="o">=</span> <span class="n">Lazbot</span><span class="p">(</span><span class="s">&quot;my-slack-token&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="lazbot.Lazbot.connect">
+<tt class="descname">connect</tt><big>(</big><big>)</big><a class="headerlink" href="#lazbot.Lazbot.connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connect this Slack bot to the Slack servers</p>
+<p>This will initialize the <tt class="docutils literal"><span class="pre">client</span></tt> attribute to handle regular Slack
+API calls and if the <tt class="docutils literal"><span class="pre">stream</span></tt> attribute is True (it is by default) a
+websocket connection will be opened and begin listening.</p>
+<p>Usage:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">bot</span><span class="o">.</span><span class="n">stream</span> <span class="o">=</span> <span class="bp">False</span>
+
+<span class="n">login_data</span> <span class="o">=</span> <span class="n">bot</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="lazbot.Lazbot.get_channel">
+<tt class="descname">get_channel</tt><big>(</big><em>channel_id</em><big>)</big><a class="headerlink" href="#lazbot.Lazbot.get_channel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function to lookup rich Channel object</p>
+<p>Slack often provides an unuseful channel id for all users, if the
+<tt class="docutils literal"><span class="pre">channels</span></tt> lookup dictionary is populated, this will return the rich
+&lt;Channel&gt; object for the provided <tt class="docutils literal"><span class="pre">channel_id</span></tt> or None if there is no
+match.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>channel_id</strong> &#8211; slack&#8217;s channel id to be looked up</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="lazbot.Lazbot.get_user">
+<tt class="descname">get_user</tt><big>(</big><em>user_id</em><big>)</big><a class="headerlink" href="#lazbot.Lazbot.get_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function to lookup rich User object</p>
+<p>Slack often provides an unuseful user id for all users, if the
+<tt class="docutils literal"><span class="pre">users</span></tt> lookup dictionary is populated, this will return the rich
+&lt;User&gt; object for the provided <tt class="docutils literal"><span class="pre">user_id</span></tt> or None if there is no
+match.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>user_id</strong> &#8211; slack&#8217;s user id to be looked up</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="lazbot.Lazbot.ignore">
+<tt class="descname">ignore</tt><big>(</big><em>*channels</em><big>)</big><a class="headerlink" href="#lazbot.Lazbot.ignore" title="Permalink to this definition">¶</a></dt>
+<dd><p>Channel blacklisting</p>
+<p>Takes a number of channel names and adds them to the blacklist so that
+all subsequent events on that channel do not trigger hooks.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="lazbot.Lazbot.listen">
+<tt class="descname">listen</tt><big>(</big><em>filter</em>, <em>channel=None</em>, <em>regex=False</em><big>)</big><a class="headerlink" href="#lazbot.Lazbot.listen" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register a message event listener</p>
+<p>(decorator) Will register the decorated function to be called for all
+Message events that match the filter settings. The filter should be a
+string that will either be a literal match (default), a <tt class="docutils literal"><span class="pre">*</span></tt> to match
+any string, or a custom regex string (with the <tt class="docutils literal"><span class="pre">regex</span></tt> flag to True),
+see &lt;regex logic&gt; for more information on the options for the string.
+The filter will be checked for all message events that happen and if
+the logic passes, the data will be passed to the decorated function.</p>
+<p>For more information see #Filter#</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>filter</strong> &#8211; message format to match against the message text</li>
+<li><strong>channel</strong> &#8211; list of channel names that this filter should check
+against</li>
+<li><strong>regex</strong> &#8211; boolean flag on whether the filter text should be
+treated as a regex string</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Usage:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="nd">@bot.listen</span><span class="p">(</span><span class="s">&quot;@me: hi&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">greetings</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">bot</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s">&quot;{!s}, greetings&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">user</span><span class="p">))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="lazbot.Lazbot.on">
+<tt class="descname">on</tt><big>(</big><em>channel='*'</em>, <em>*events</em><big>)</big><a class="headerlink" href="#lazbot.Lazbot.on" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register a generic event listener</p>
+<p>(decorator) Will register the decorated function as a hook for the
+specified event(s).  When the event is triggered, the handler will get
+a keyworded representation of the event (see the targetted events for
+what these could be).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>events</strong> &#8211; event types as specified in ##events##</td>
+</tr>
+</tbody>
+</table>
+<p>Usage:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">typing_count</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="nd">@bot.on</span><span class="p">(</span><span class="n">events</span><span class="o">.</span><span class="n">USER_TYPING</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">count_typing</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">user</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">typing_count</span><span class="p">:</span>
+        <span class="n">typing_count</span><span class="p">[</span><span class="n">user</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="n">typing_count</span><span class="p">[</span><span class="n">user</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="lazbot.Lazbot.post">
+<tt class="descname">post</tt><big>(</big><em>channel</em>, <em>translate=True</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#lazbot.Lazbot.post" title="Permalink to this definition">¶</a></dt>
+<dd><p>Post message to a channel</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="lazbot.Lazbot.schedule">
+<tt class="descname">schedule</tt><big>(</big><em>function=None</em>, <em>when=None</em>, <em>after=None</em>, <em>recurring=False</em><big>)</big><a class="headerlink" href="#lazbot.Lazbot.schedule" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register a scheduled task</p>
+<p>(decorator) Will register the decorated function (or can register a
+function normally) to be run at a specific time, after a specific time
+has elapsed, or a mixture if set to recurring.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>function</strong> &#8211; function to be called when task is
+activated, if not set, this will return a decorator</li>
+<li><strong>when</strong> &#8211; (optional) <tt class="docutils literal"><span class="pre">date</span></tt>, <tt class="docutils literal"><span class="pre">time</span></tt>, or <tt class="docutils literal"><span class="pre">datetime</span></tt> object for
+the time the task will get run at (if a <tt class="docutils literal"><span class="pre">date</span></tt>, the time will be
+midnight, if a <tt class="docutils literal"><span class="pre">time</span></tt> it will be the next occurance of that time)</li>
+<li><strong>after</strong> &#8211; (optional) <tt class="docutils literal"><span class="pre">timedelta</span></tt> for the amount of time until the
+task will be run from now</li>
+<li><strong>recurring</strong> &#8211; if set to True, the task will be run again after it
+is completed, the <tt class="docutils literal"><span class="pre">after</span></tt> param is required for this</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Usage:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">timedelta</span><span class="p">,</span> <span class="n">time</span>
+
+<span class="nd">@bot.schedule</span><span class="p">(</span><span class="n">when</span><span class="o">=</span><span class="n">time</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">after</span><span class="o">=</span><span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="mi">24</span><span class="p">),</span>
+              <span class="n">recurring</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">lunchtime</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">lunch_channel</span> <span class="o">=</span> <span class="n">bot</span><span class="o">.</span><span class="n">lookup_channel</span><span class="p">(</span><span class="s">&quot;#lunch-reminder&quot;</span><span class="p">)</span>
+    <span class="n">bot</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">lunch_channel</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s">&quot;Lunch time&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="lazbot.Lazbot.setup">
+<tt class="descname">setup</tt><big>(</big><em>function=None</em>, <em>priority=False</em><big>)</big><a class="headerlink" href="#lazbot.Lazbot.setup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register a setup hook</p>
+<p>(decorator) Will register the decorated funtion to be called once the
+bot has connected to the Slack servers.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>priority</strong> &#8211; whether the function is a high priority setup (it gets
+called with other high priority setup functions)</td>
+</tr>
+</tbody>
+</table>
+<p>Usage:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="nd">@bot.setup</span>
+<span class="k">def</span> <span class="nf">greetings</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">bot_channel</span> <span class="o">=</span> <span class="n">bot</span><span class="o">.</span><span class="n">lookup_channel</span><span class="p">(</span><span class="s">&quot;#bot-channel&quot;</span><span class="p">)</span>
+    <span class="n">bot</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">bot_channel</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s">&quot;Hey guys&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="lazbot.Lazbot.start">
+<tt class="descname">start</tt><big>(</big><big>)</big><a class="headerlink" href="#lazbot.Lazbot.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start up the bot process</p>
+<p>Calls the <tt class="docutils literal"><span class="pre">connect</span></tt> method and then (if <tt class="docutils literal"><span class="pre">stream</span></tt> is set) begins the
+event loop, reading events off of the socket, running scheduled tasks,
+and keeping the connection alive.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="lazbot.Lazbot.stop">
+<tt class="descname">stop</tt><big>(</big><big>)</big><a class="headerlink" href="#lazbot.Lazbot.stop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stop the bot process</p>
+<p>Closes the socket and turns listeners off</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="lazbot.Lazbot.translate">
+<tt class="descname">translate</tt><big>(</big><em>channel='*'</em>, <em>function=None</em><big>)</big><a class="headerlink" href="#lazbot.Lazbot.translate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register a translation function</p>
+<p>(decorator) Will register the decorated function in the series of
+translation functions that get called on message posts.  These
+functions are meant for modifying messages in specific channels (or
+all channels).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>channel</strong> &#8211; single or list of channel names to apply this
+translator to</td>
+</tr>
+</tbody>
+</table>
+<p>Usage:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="nd">@bot.translate</span><span class="p">(</span><span class="n">channel</span><span class="o">=</span><span class="s">&quot;#bot_test&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">self_reference</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">bot</span><span class="o">.</span><span class="n">user</span><span class="p">,</span> <span class="s">&quot;me&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.jpg" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+<p>
+<iframe src="http://ghbtns.com/github-btn.html?user=jdost&repo=lazbot&type=watch&count=true&size=large"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../guide/introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/event_hooks.html">Event Hooks</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Framework API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filter.html">Filter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="models.html">Framework Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="task.html">Scheduled Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins/about.html">About Plugin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins/admin.html">Admin Plugin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins/ext.html">Ext Plugin</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, jdost.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.2.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.6.3</a>
+      
+      |
+      <a href="../_sources/api/bot.txt"
+          rel="nofollow">Page source</a></li>
+    </div>
+
+    
+
+    
+  </body>
+</html>

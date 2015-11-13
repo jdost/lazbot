@@ -1,0 +1,177 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Filter &mdash; La-Z-Bot 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="La-Z-Bot 0.1 documentation" href="../index.html" />
+    <link rel="next" title="Framework Models" href="models.html" />
+    <link rel="prev" title="Framework API" href="bot.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="models.html" title="Framework Models"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="bot.html" title="Framework API"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">La-Z-Bot 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="filter">
+<span id="id1"></span><h1>Filter<a class="headerlink" href="#filter" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-lazbot.filter"></span><dl class="class">
+<dt id="lazbot.filter.Filter">
+<em class="property">class </em><tt class="descclassname">lazbot.filter.</tt><tt class="descname">Filter</tt><big>(</big><em>bot</em>, <em>match_txt=''</em>, <em>handler=None</em>, <em>channels=None</em>, <em>regex=False</em><big>)</big><a class="reference internal" href="../_modules/lazbot/filter.html#Filter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lazbot.filter.Filter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Logic wrapper for message events</p>
+<p>Filter provides a number of helpers to make message filtering, matching,
+and parsing easier.</p>
+<dl class="classmethod">
+<dt id="lazbot.filter.Filter.compile_regex">
+<em class="property">classmethod </em><tt class="descname">compile_regex</tt><big>(</big><em>base_str</em><big>)</big><a class="reference internal" href="../_modules/lazbot/filter.html#Filter.compile_regex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lazbot.filter.Filter.compile_regex" title="Permalink to this definition">¶</a></dt>
+<dd><p>compile filter regex into regex matcher</p>
+<p>Converts the provided string into a RegexObject and a Parser.  This
+will convert the string into a normal RegexObject.  It will first
+attempt to convert flask-like capture group helpers into Regex capture
+groups.  It will also add translation helpers to the returned Parser
+object to provide some post processing of the special captures.</p>
+<p>Provided captures include:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">int</span></tt> - looks for numeric values and will convert into a number</li>
+<li><tt class="docutils literal"><span class="pre">username</span></tt> - looks for the Slack form of username identifiers and
+attempts to lookup the <em class="xref std std-ref">User</em> object</li>
+<li><tt class="docutils literal"><span class="pre">[username]</span></tt> - like <tt class="docutils literal"><span class="pre">username</span></tt> but looks for a list of them</li>
+<li><tt class="docutils literal"><span class="pre">channel</span></tt> - looks for the Slack form of channel identifiers and
+attempts to lookup the <em class="xref std std-ref">Channel</em> object</li>
+<li><tt class="docutils literal"><span class="pre">[channel]</span></tt> - like <tt class="docutils literal"><span class="pre">channel</span></tt> but looks for a list of them</li>
+</ul>
+</dd></dl>
+
+<dl class="method">
+<dt id="lazbot.filter.Filter.disable">
+<tt class="descname">disable</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/lazbot/filter.html#Filter.disable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lazbot.filter.Filter.disable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Disable message matching</p>
+<p>Will disable the <tt class="docutils literal"><span class="pre">Filter</span></tt> from matching any messages</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="lazbot.filter.Filter.enable">
+<tt class="descname">enable</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/lazbot/filter.html#Filter.enable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lazbot.filter.Filter.enable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enable message matching</p>
+<p>Will enable the <tt class="docutils literal"><span class="pre">Filter</span></tt> to attempt to match messages</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.jpg" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+<p>
+<iframe src="http://ghbtns.com/github-btn.html?user=jdost&repo=lazbot&type=watch&count=true&size=large"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../guide/introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/event_hooks.html">Event Hooks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bot.html">Framework API</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Filter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="models.html">Framework Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="task.html">Scheduled Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins/about.html">About Plugin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins/admin.html">Admin Plugin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins/ext.html">Ext Plugin</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, jdost.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.2.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.6.3</a>
+      
+      |
+      <a href="../_sources/api/filter.txt"
+          rel="nofollow">Page source</a></li>
+    </div>
+
+    
+
+    
+  </body>
+</html>
