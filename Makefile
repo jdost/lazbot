@@ -7,8 +7,8 @@ shell:
 	${PYTHONPATH} python ./etc/console.py
 
 clean:
-	rm src/plugins/*.pyc
-	rm src/lazbot/*.pyc
+	rm -f src/plugins/*.pyc
+	rm -f src/lazbot/*.pyc
 
 unittest:
 	${PYTHONPATH} nosetests ${NOSEOPTS} ./tests/test_*.py
