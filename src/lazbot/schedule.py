@@ -56,14 +56,13 @@ class ScheduledTask(object):
         if not when and not delta:
             raise "Need a time or time span to schedule at"
 
-        if isinstance(when, time):
+        if type(when) == time:
             today = date.today()
             now = datetime.now(tzutc()).timetz()
             when = datetime.combine(today if now < when else
                                     today + timedelta(days=1), when)
-        elif isinstance(when, date):
-            when = datetime.combine(when, time(hours=0, minutes=0,
-                                               tzinfo=tzutc()))
+        elif type(when) == date:
+            when = datetime.combine(when, time(0, 0, tzinfo=tzutc()))
 
         if delta and not when:  # provide a period but no start
             self.delta = delta

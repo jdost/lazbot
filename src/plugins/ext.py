@@ -17,20 +17,20 @@ FIXES = [
 
 
 @bot.setup(priority=True)
-def fix_channels(client, login_data):
+def fix_channels(client, channels=[], groups=[], ims=[], **kwargs):
     ''' Take all provided channels, groups, and ims from login  and create the
     rich `Channel` objects for them and add to the bot's lookup dictionary.
     '''
     total = 0
-    for channel in login_data["channels"]:
+    for channel in channels:
         bot.channels[channel["id"]] = Channel(channel)
         total += 1
 
-    for group in login_data["groups"]:
+    for group in groups:
         bot.channels[group["id"]] = Channel(group)
         total += 1
 
-    for im in login_data["ims"]:
+    for im in ims:
         bot.channels[im["id"]] = Channel(im)
         total += 1
 
@@ -44,15 +44,14 @@ def load_channels():
 
 
 @bot.setup(priority=True)
-def fix_users(client, login_data):
+def fix_users(client, users, **kwargs):
     ''' Take all provided users from login and create the rich `User` objects
     for them and add to the bot's lookup dictionary.
     '''
-    user_list = login_data["users"]
-    for user in user_list:
+    for user in users:
         bot.users[user["id"]] = User(user)
 
-    logger.info("Loaded %d users", len(user_list))
+    logger.info("Loaded %d users", len(users))
 
 
 @bot.on(*CHANNEL_CREATE_EVENTS)

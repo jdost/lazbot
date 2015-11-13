@@ -36,8 +36,17 @@ class Lazbot(object):
     IGNORED_EVENTS = [events.PONG, events.USER_TYPING, events.PRESENCE_CHANGE]
 
     def __init__(self, token):
-        self.last_ping = 0
         self.token = token
+        self._initialize()
+
+        self.schedule(self.__cleanup, after=timedelta(minutes=1),
+                      recurring=True)
+
+        Channel.bind_bot(self)
+        User.bind_bot(self)
+
+    def _initialize(self):
+        self.last_ping = 0
         self.channels = {}
         self.users = {}
         self._setup = []
@@ -50,12 +59,6 @@ class Lazbot(object):
         self.client = None
         self.stream = True
         self.can_reconnect = False
-
-        self.schedule(self.__cleanup, after=timedelta(minutes=1),
-                      recurring=True)
-
-        Channel.bind_bot(self)
-        User.bind_bot(self)
 
     def connect(self):
         """Connect this Slack bot to the Slack servers
@@ -104,13 +107,13 @@ class Lazbot(object):
         self.running = True
         for name, handler in self._setup:
             with logger.scope(name):
-                handler(self.client, login_data)
+                handler(self.client, **login_data)
 
         if not self.stream:
             return
 
         while self.running:
-            self.__read()
+            self._read()
             self.__check_tasks()
             self.autoping()
             time.sleep(.1)
@@ -180,7 +183,7 @@ class Lazbot(object):
 
         user_id = user_id.strip("<>@")
         try:
-            return self.users.get(user_id, None)
+            return self.users.get(user_id, user_id)
         except TypeError:
             logger.debug("TypeError %r", user_id)
             return None
@@ -197,7 +200,7 @@ class Lazbot(object):
         """
         channel_id = channel_id.strip("<>#")
         try:
-            return self.channels.get(channel_id, None)
+            return self.channels.get(channel_id, channel_id)
         except TypeError:
             logger.debug("TypeError %r", channel_id)
             return None
@@ -229,15 +232,20 @@ class Lazbot(object):
         return data.rstrip()
 
     def __parse_events(self, raw_data):
-        if raw_data == '':
+        if isinstance(raw_data, dict):
+            yield raw_data
             return
+        elif raw_data == '':
+            return
+        elif isinstance(raw_data, str):
+            raw_data = raw_data.split('\n')
 
-        for data in raw_data.split('\n'):
-            data = json.loads(data)
+        for data in raw_data:
+            data = json.loads(data) if isinstance(data, str) else data
             yield build(data)(self, data)
 
-    def __read(self):
-        data = self.__read_socket()
+    def _read(self, data=None):
+        data = data if data else self.__read_socket()
         if not data:
             return
 

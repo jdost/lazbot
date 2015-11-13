@@ -40,7 +40,11 @@ class Filter(object):
         "int": {
             "regex": "[0-9]+",
             "handler": lambda _, s: int(s)
-        }
+        },
+        "[int]": {
+            "regex": "([0-9]+ {0,1})+",
+            "handler": lambda _, s: map(int, s.split(' '))
+        },
     }
     TRANSLATION_CAPTURE = r'\<([\[\]\{\}\(\)\,\'0-9a-zA-Z\*]+)\:([a-z]+)\>'
 
