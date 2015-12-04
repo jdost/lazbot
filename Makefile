@@ -13,6 +13,7 @@ shell:
 clean:
 	rm -f src/plugins/*.pyc
 	rm -f src/lazbot/*.pyc
+	rm -f src/lazbot/*/*.pyc
 
 unittest:
 	@echo Core tests:
@@ -35,8 +36,11 @@ docs: docs-init
 docs-serve:
 	cd docs/build/html/ && python -m SimpleHTTPServer 8080
 
-docs-publish: clean docs
+docs-publish: docs clean
 	git co gh-pages
-	mv docs/build/html/* .
+	git rm -r *
+	mv -f docs/build/html/* .
+	git add .
 	git commit -a
 	git push
+	git co master
