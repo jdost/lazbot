@@ -8,6 +8,7 @@ class Event(object):
     @classmethod
     def cleanup_filter(cls, f):
         cls.cleanup_functions.append(f)
+        return f
 
     def __init__(self, bot, raw):
         self.raw = raw

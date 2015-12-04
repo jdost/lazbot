@@ -1,11 +1,10 @@
 import unittest
 from freezegun import freeze_time
-from lazbot.utils import build_namespace
+from lazbot.test import setup
 import datetime as dt
 from dateutil.tz import tzutc
 
-app = build_namespace("app")
-app.config = {}
+app = setup()
 
 from lazbot.schedule import ScheduledTask
 

@@ -1,6 +1,8 @@
 from lazbot import Lazbot
+from models import Channel
 import unittest
 from contextlib import contextmanager
+from functools import wraps
 
 DEFAULT_LOGIN_DATA = {
     "ok": True,
@@ -9,6 +11,13 @@ DEFAULT_LOGIN_DATA = {
         "name": "testbot",
         "id": "U01234",
     },
+    "team": {
+        "domain": "",
+    },
+    "users": [],
+    "channels": [],
+    "groups": [],
+    "ims": [],
 }
 
 
@@ -19,13 +28,17 @@ class FakeClient(object):
 class TestBot(Lazbot):
     def __init__(self):
         self._initialize()
-        self.login_data = None
+        self.login_data = DEFAULT_LOGIN_DATA
         self.stream = False
         self.can_reconnect = False
+        Channel.bind_bot(self)
 
     def connect(self, login_data=DEFAULT_LOGIN_DATA):
         self.client = FakeClient()
-        return self.login_data if self.login_data else login_data
+        login_data = self.login_data if self.login_data else login_data
+        self.parse_login_data(login_data)
+
+        return login_data
 
     def start(self, login_data=DEFAULT_LOGIN_DATA):
         self.login_data = login_data
@@ -43,6 +56,7 @@ class TestBase(unittest.TestCase):
         self.bot = TestBot()
         self.triggered = False
         self.triggered_values = None
+        self.app = setup(bot=self.bot)
 
     def trigger(self, *args, **kwargs):
         self.triggered = True
@@ -72,6 +86,9 @@ class TestBase(unittest.TestCase):
         x.update(update)
         return x
 
+    def assertEmpty(self, c):
+        self.assertEqual(len(c), 0)
+
     @classmethod
     def clean(cls, testcase):
         def decorated(self, *args, **kwargs):
@@ -79,3 +96,24 @@ class TestBase(unittest.TestCase):
             return testcase(*args, **kwargs)
 
         return decorated
+
+
+def with_data(**data):
+    def decorator(f):
+        @wraps(f)
+        def decorated(self):
+            self.bot.start(self.merge(self.bot.login_data, **data))
+            return f(self)
+        return decorated
+    return decorator
+
+
+def setup(bot=None):
+    from .utils import build_namespace
+    app = build_namespace("app")
+
+    app.config = {}
+    if bot:
+        app.bot = bot
+
+    return app

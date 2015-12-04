@@ -1,21 +1,28 @@
 PYTHONPATH = PYTHONPATH=$(PWD)/src
 
+.DEFAULT: test
+
+.PHONY: run shell clean unittest lint test docs-init docs docs-serve docs-publish
+
 run:
 	${PYTHONPATH} python ./bin/start
 
 shell:
-	${PYTHONPATH} python ./etc/console.py
+	@${PYTHONPATH} python ./etc/console.py
 
 clean:
 	rm -f src/plugins/*.pyc
 	rm -f src/lazbot/*.pyc
 
 unittest:
-	${PYTHONPATH} nosetests ${NOSEOPTS} ./tests/test_*.py
+	@echo Core tests:
+	@${PYTHONPATH} nosetests ${NOSEOPTS} ./tests/test_*.py
+	@echo Plugin tests:
+	@${PYTHONPATH} nosetests ${NOSEOPTS} ./tests/plugins/test_*.py
 
 lint:
-	flake8 --ignore=F401 --max-complexity 12 src/
-	flake8 --ignore=F401 --max-complexity 12 tests/
+	@flake8 --ignore=F401 --max-complexity 12 src/
+	@flake8 --ignore=F401 --max-complexity 12 tests/
 
 test: lint unittest
 

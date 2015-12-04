@@ -405,7 +405,7 @@ class Lazbot(object):
 
         return decorated(function) if function else decorated
 
-    def on(self, channel="*", *events):
+    def on(self, *events, **kwargs):
         """Register a generic event listener
 
         (decorator) Will register the decorated function as a hook for the
@@ -427,6 +427,8 @@ class Lazbot(object):
                 typing_count[user] += 1
 
         """
+        # channel = kwargs["channel"] if "channel" in kwargs else "*"
+
         def decorated(function):
             for event in events:
                 if event not in self._hooks:
