@@ -4,7 +4,7 @@ html_theme_options = {
     'logo': 'logo.jpg',
     'github_user': 'jdost',
     'github_repo': 'lazbot',
-    'travis_button': False,
+    'travis_button': True,
 }
 
 import sys

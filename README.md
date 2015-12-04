@@ -1,5 +1,7 @@
 # LaZBot
 
+[![Travis Status](https://travis-ci.org/jdost/lazbot.svg?branch=master)](https://travis-ci.org/jdost/lazbot)
+
 LaZBot is a slack bot written in Python.  It is designed to handle a lot of the
 heavy lifting and make plugin development easy.  It uses decorators to tie into the
 large event system of the bot framework.  All a plugin needs to do is decorate 
