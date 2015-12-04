@@ -14,10 +14,15 @@ class Message(Event):
 
     def __init__(self, bot, raw):
         Event.__init__(self, bot, raw)
-        self.channel = bot.get_channel(raw.get("channel", ""))
-        self.user = bot.get_user(raw.get("user", ""))
         self.text = self.cleanup_text(raw.get("text", ""))
         self.timestamp = raw.get("ts", None)
+
+        if bot:
+            self.channel = bot.get_channel(raw.get("channel", ""))
+            self.user = bot.get_user(raw.get("user", ""))
+        else:
+            self.channel = raw.get("channel", "")
+            self.user = raw.get("user", "")
 
     def __dict__(self):
         return {

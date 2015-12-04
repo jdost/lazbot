@@ -30,12 +30,12 @@ class ExtTest(TestBase):
     def test_channel_fixing(self):
         ''' Verifies the channel importing during connect
         '''
-        self.assertTrue("C123" in self.bot.channels)
-        self.assertTrue("C456" in self.bot.channels)
-        self.assertTrue("I123" in self.bot.channels)
-        self.assertTrue("G123" in self.bot.channels)
+        self.assertIn("C123", self.bot.channels)
+        self.assertIn("C456", self.bot.channels)
+        self.assertIn("I123", self.bot.channels)
+        self.assertIn("G123", self.bot.channels)
 
-        self.assertFalse("NOTONE" in self.bot.channels)
+        self.assertNotIn("NOTONE", self.bot.channels)
 
     def test_channel_loading(self):
         ''' Verifies that channels created get added
@@ -47,7 +47,7 @@ class ExtTest(TestBase):
         self.assertEmpty(self.bot.channels)
         self.bot.recv_event({"type": "channel_created",
                              "channel": {"id": "test", "name": "new_channel"}})
-        self.assertTrue("test" in self.bot.channels)
+        self.assertIn("test", self.bot.channels)
 
     def test_username_fixing(self):
         ''' Verifies the bot username is normalized
