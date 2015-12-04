@@ -21,8 +21,8 @@ unittest:
 	@${PYTHONPATH} nosetests ${NOSEOPTS} ./tests/plugins/test_*.py
 
 lint:
-	@flake8 --ignore=F401 --max-complexity 12 src/
-	@flake8 --ignore=F401 --max-complexity 12 tests/
+	@flake8 --ignore=F401,E731 --max-complexity 12 src/
+	@flake8 --ignore=F401,E731,E402 --max-complexity 12 tests/
 
 test: lint unittest
 
