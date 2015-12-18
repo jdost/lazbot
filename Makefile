@@ -33,14 +33,15 @@ docs-init:
 docs: docs-init
 	cd docs && make html
 
-docs-serve:
+docs-serve: docs
 	cd docs/build/html/ && python -m SimpleHTTPServer 8080
 
 docs-publish: docs clean
 	git co gh-pages
-	git rm -r *
+	git ls-files | xargs git rm -f
 	mv -f docs/build/html/* .
+	touch .nojekyll
 	git add .
-	git commit -a
+	git commit -a -m "Docs update"
 	git push
 	git co master
