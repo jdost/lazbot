@@ -66,7 +66,44 @@ runtime has been reached.</p>
 <span class="target" id="module-lazbot.schedule"></span><dl class="class">
 <dt id="lazbot.schedule.ScheduledTask">
 <em class="property">class </em><tt class="descclassname">lazbot.schedule.</tt><tt class="descname">ScheduledTask</tt><big>(</big><em>action=None</em>, <em>delta=None</em>, <em>when=None</em>, <em>recurring=None</em><big>)</big><a class="reference internal" href="../_modules/lazbot/schedule.html#ScheduledTask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lazbot.schedule.ScheduledTask" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Setup one time or recurring scheduled task</p>
+<p>Will attempt to figure out the next time the action should be run and
+return a task to be added to the pool.  If an absolute time is provided it
+will attempt to figure out the next time that time will occur, the time can
+be any of <tt class="docutils literal"><span class="pre">date</span></tt>, <tt class="docutils literal"><span class="pre">time</span></tt>, or <tt class="docutils literal"><span class="pre">datetime</span></tt>.  If it is in the past, it
+will figure out the next logical time to run it.</p>
+<p>If no absolute time is provided, the relative time from when the task is
+scheduled will be used.</p>
+<p>If recurring is <tt class="docutils literal"><span class="pre">True</span></tt>.  A relative value will be calculated if not
+provided and will be added to the current time for the next run after each
+time the task is run.  So if it runs at midnight and then a delta of 1
+hour, it will run every hour from midnight on.</p>
+<dl class="docutils">
+<dt>Example: ::</dt>
+<dd><dl class="first last docutils">
+<dt>task = ScheduledTask(action=lambda: print &#8220;o&#8217;clock&#8221;,</dt>
+<dd>delta=timedelta(hours=1), when=time(0, 0, 0),
+recurring=True)</dd>
+</dl>
+</dd>
+</dl>
+<p>This example will print <tt class="docutils literal"><span class="pre">o'clock</span></tt> every hour after midnight.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>action</strong> &#8211; function to be called when the task is run</li>
+<li><strong>delta</strong> &#8211; (optional) relative <tt class="docutils literal"><span class="pre">timedelta</span></tt> for the time scheduling</li>
+<li><strong>when</strong> &#8211; (optional) absolute time for when to run this task</li>
+<li><strong>recurring</strong> &#8211; boolean flag for whether this task should be run more
+than once</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </div>
 

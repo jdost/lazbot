@@ -77,36 +77,36 @@
 
 
 <div class="viewcode-block" id="ScheduledTask"><a class="viewcode-back" href="../../api/task.html#lazbot.schedule.ScheduledTask">[docs]</a><span class="k">class</span> <span class="nc">ScheduledTask</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Setup one time or recurring scheduled task</span>
+
+<span class="sd">    Will attempt to figure out the next time the action should be run and</span>
+<span class="sd">    return a task to be added to the pool.  If an absolute time is provided it</span>
+<span class="sd">    will attempt to figure out the next time that time will occur, the time can</span>
+<span class="sd">    be any of ``date``, ``time``, or ``datetime``.  If it is in the past, it</span>
+<span class="sd">    will figure out the next logical time to run it.</span>
+
+<span class="sd">    If no absolute time is provided, the relative time from when the task is</span>
+<span class="sd">    scheduled will be used.</span>
+
+<span class="sd">    If recurring is ``True``.  A relative value will be calculated if not</span>
+<span class="sd">    provided and will be added to the current time for the next run after each</span>
+<span class="sd">    time the task is run.  So if it runs at midnight and then a delta of 1</span>
+<span class="sd">    hour, it will run every hour from midnight on.</span>
+
+<span class="sd">    Example: ::</span>
+<span class="sd">        task = ScheduledTask(action=lambda: print &quot;o&#39;clock&quot;,</span>
+<span class="sd">                             delta=timedelta(hours=1), when=time(0, 0, 0),</span>
+<span class="sd">                             recurring=True)</span>
+
+<span class="sd">    This example will print ``o&#39;clock`` every hour after midnight.</span>
+
+<span class="sd">    :param action: function to be called when the task is run</span>
+<span class="sd">    :param delta: (optional) relative ``timedelta`` for the time scheduling</span>
+<span class="sd">    :param when: (optional) absolute time for when to run this task</span>
+<span class="sd">    :param recurring: boolean flag for whether this task should be run more</span>
+<span class="sd">     than once</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">when</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">recurring</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Setup one time or recurring scheduled task</span>
-
-<span class="sd">        Will attempt to figure out the next time the action should be run and</span>
-<span class="sd">        return a task to be added to the pool.  If an absolute time is provided</span>
-<span class="sd">        it will attempt to figure out the next time that time will occur, the</span>
-<span class="sd">        time can be any of ``date``, ``time``, or ``datetime``.  If it is in</span>
-<span class="sd">        the past, it will figure out the next logical time to run it.</span>
-
-<span class="sd">        If no absolute time is provided, the relative time from when the task</span>
-<span class="sd">        is scheduled will be used.</span>
-
-<span class="sd">        If recurring is ``True``.  A relative value will be calculated if not</span>
-<span class="sd">        provided and will be added to the current time for the next run after</span>
-<span class="sd">        each time the task is run.  So if it runs at midnight and then a delta</span>
-<span class="sd">        of 1 hour, it will run every hour from midnight on.</span>
-
-<span class="sd">        Example: ::</span>
-<span class="sd">            task = ScheduledTask(action=lambda: print &quot;o&#39;clock&quot;,</span>
-<span class="sd">                                 delta=timedelta(hours=1), when=time(0, 0, 0),</span>
-<span class="sd">                                 recurring=True)</span>
-
-<span class="sd">        This example will print ``o&#39;clock`` every hour after midnight.</span>
-
-<span class="sd">        :param action: function to be called when the task is run</span>
-<span class="sd">        :param delta: (optional) relative ``timedelta`` for the time scheduling</span>
-<span class="sd">        :param when: (optional) absolute time for when to run this task</span>
-<span class="sd">        :param recurring: boolean flag for whether this task should be run more</span>
-<span class="sd">         than once</span>
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">when</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">delta</span><span class="p">:</span>
             <span class="k">raise</span> <span class="s">&quot;Need a time or time span to schedule at&quot;</span>
 
