@@ -56,9 +56,14 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="module-lazbot.schedule">
-<span id="scheduled-tasks"></span><span id="task"></span><h1>Scheduled Tasks<a class="headerlink" href="#module-lazbot.schedule" title="Permalink to this headline">¶</a></h1>
-<dl class="class">
+  <div class="section" id="scheduled-tasks">
+<span id="task"></span><h1>Scheduled Tasks<a class="headerlink" href="#scheduled-tasks" title="Permalink to this headline">¶</a></h1>
+<p>The ScheduledTask model offers a wrapped caller for a task that manages time
+commitments for the scheduling.  If the task is not recurring and called manually,
+it will not run when it is scheduled (it will be considered run and not run again).
+The object is also comparable to datetime objects to determine if the next targetted
+runtime has been reached.</p>
+<span class="target" id="module-lazbot.schedule"></span><dl class="class">
 <dt id="lazbot.schedule.ScheduledTask">
 <em class="property">class </em><tt class="descclassname">lazbot.schedule.</tt><tt class="descname">ScheduledTask</tt><big>(</big><em>action=None</em>, <em>delta=None</em>, <em>when=None</em>, <em>recurring=None</em><big>)</big><a class="reference internal" href="../_modules/lazbot/schedule.html#ScheduledTask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#lazbot.schedule.ScheduledTask" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
