@@ -65,3 +65,21 @@ class FilterTest(unittest.TestCase):
                         handler=self.handler, regex=True)
         filter(self.message("<#C1234> wants you"))
         self.assertDictContainsSubset({"who": "<#C1234>"}, self.response)
+
+    def test_dynamic_arguments(self):
+        ''' Confirm that the handler's argument signature is honored
+        Filter handlers can dictate which arguments get passed in based on its
+        function signature.  Extraneous arguments are dropped when it is called
+        rather than erroring.
+        '''
+
+        def test_handler(text, channel):
+            return (text, channel)
+
+        message = {"type": events.MESSAGE,
+                   "channel": "#test", "text": "dynamic"}
+
+        filter = Filter(self.bot, match_txt="*", handler=test_handler)
+        self.assertEqual(
+            filter(Message(self.bot, message)),
+            ("dynamic", "#test"))

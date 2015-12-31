@@ -1,4 +1,5 @@
 import logger
+from inspect import getargspec
 
 import re
 
@@ -128,6 +129,13 @@ class Filter(object):
         '''
         self.disabled = False
 
+    def __filter__(self, **kwargs):
+        signature = getargspec(self.handler)
+        if signature.keywords:
+            return kwargs
+
+        return dict(map(lambda k: (k, kwargs[k]), signature.args))
+
     def __parse__(self, text):
         if type(self.cmp) is str:
             return {}
@@ -139,14 +147,14 @@ class Filter(object):
     def __call__(self, event=None, direct=False, **kwargs):
         if not event and direct:
             with logger.scope(self._plugin):
-                return self.handler(**kwargs)
+                return self.handler(**self.__filter__(**kwargs))
 
         if self.disabled or not (self == event):
             return
 
         result = self.__parse__(event.text)
         with logger.scope(self._plugin):
-            return self.handler(**(event + result))
+            return self.handler(**self.__filter__(**(event + result)))
 
     def __eq__(self, target):
         if self.channels and str(target.channel) not in self.channels:
