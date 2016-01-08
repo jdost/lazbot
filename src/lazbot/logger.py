@@ -7,6 +7,13 @@ _current_plugin = ''
 
 
 def current_plugin(x=None):
+    """Plugin context dictation
+    If provided with a string, it will change the global plugin context
+    tracking that is used with logging, data access, and other things.
+
+    If no string is provided, it will return the current context that the
+    code is being run in.
+    """
     global _current_plugin
 
     if x:
@@ -48,6 +55,10 @@ def log(*args, **kwargs):
 
 @contextlib.contextmanager
 def scope(name):
+    """Runs code insode of a specified context
+    Any code run within the context will have a plugin name as specified.  This
+    is used for controlled data access, logging, and other things.
+    """
     global current_logger
     tmp = (_current_plugin, current_logger)
 

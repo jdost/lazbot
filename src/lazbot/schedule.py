@@ -52,9 +52,13 @@ class ScheduledTask(object):
     :param recurring: boolean flag for whether this task should be run more
      than once
     """
-    def __init__(self, action=None, delta=None, when=None, recurring=None):
+    def __init__(self, action=None, delta=None, when=None, recurring=None,
+                 name=None):
         if not when and not delta:
             raise "Need a time or time span to schedule at"
+
+        if not name:
+            name = action.__name__
 
         if type(when) == time:
             today = date.today()
@@ -78,6 +82,7 @@ class ScheduledTask(object):
         self._plugin = logger.current_plugin()
         self.recurring = recurring
         self.done = False
+        self.name = name
 
         logger.debug(self)
 

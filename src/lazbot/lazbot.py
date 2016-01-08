@@ -9,6 +9,7 @@ from filter import Filter
 from slacker import Slacker
 from websocket import create_connection
 from dateutil.tz import tzutc
+from functools import wraps
 
 from utils import clean_args
 
@@ -305,13 +306,13 @@ class Lazbot(object):
 
         """
         def decorated(function):
-            new_filter = Filter(
+            new_filter = wraps(function)(Filter(
                 bot=self,
                 match_txt=filter,
                 handler=function,
                 channels=channel,
                 regex=regex
-            )
+            ))
             self._hooks[events.MESSAGE].append(new_filter)
 
             return new_filter
@@ -342,7 +343,8 @@ class Lazbot(object):
 
         return decorated(function) if function else decorated
 
-    def schedule(self, function=None, when=None, after=None, recurring=False):
+    def schedule(self, function=None, when=None, after=None, recurring=False,
+                 name=None):
         """Register a scheduled task
 
         (decorator) Will register the decorated function (or can register a
@@ -358,6 +360,8 @@ class Lazbot(object):
          task will be run from now
         :param recurring: if set to True, the task will be run again after it
          is completed, the ``after`` param is required for this
+        :param name: (optional) a name to provide to the task, useful for any
+         attempts at resolving duplicate creation
 
         Usage: ::
 
@@ -373,8 +377,10 @@ class Lazbot(object):
         from schedule import ScheduledTask
 
         def decorated(function):
-            task = ScheduledTask(action=function, delta=after,
-                                 when=when, recurring=recurring)
+            task = wraps(function)(
+                ScheduledTask(action=function, delta=after,
+                              when=when, recurring=recurring,
+                              name=name))
             self._scheduled_tasks.append(task)
             return task
 
