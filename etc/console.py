@@ -1,6 +1,7 @@
 from lazbot import Lazbot
 from lazbot import utils
 from lazbot import logger
+from lazbot import db
 
 import code
 import os
@@ -15,6 +16,7 @@ directory = os.path.dirname(sys.argv[0]) + "/.."
 
 plugins = app.config.get("plugins", None)
 utils.load_plugins(os.path.join(directory, "src", "plugins"), [])
+db.setup(app.config.get("data", None))
 for plugin in plugins:
     with logger.scope(plugin):
         locals()[plugin] = __import__(plugin)

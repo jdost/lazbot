@@ -13,6 +13,7 @@ from dateutil.tz import tzutc
 from utils import clean_args
 
 import logger
+import db
 
 Slacker.DEFAULT_TIMEOUT = 20
 
@@ -52,6 +53,7 @@ class Lazbot(object):
         self.channels = {}
         self.users = {}
         self._setup = []
+        self._teardown = []
         self._scheduled_tasks = []
         self._translations = []
         self._ignore = []
@@ -61,6 +63,9 @@ class Lazbot(object):
         self.client = None
         self.stream = True
         self.can_reconnect = False
+
+    def __teardown(self):
+        db.close()
 
     def connect(self):
         """Connect this Slack bot to the Slack servers
@@ -119,6 +124,11 @@ class Lazbot(object):
             self.__check_tasks()
             self.autoping()
             time.sleep(.1)
+
+        for name, handler in self._teardown:
+            with logger.scope(name):
+                handler()
+        self.__teardown()
 
     def stop(self):
         """Stop the bot process
@@ -338,6 +348,30 @@ class Lazbot(object):
         def decorated(function):
             self._setup.insert(0 if priority else len(self._setup),
                                (logger.current_plugin(), clean_args(function)))
+            return function
+
+        return decorated(function) if function else decorated
+
+    def teardown(self, function=None, priority=False):
+        """Regioster a teardown hook
+
+        (decorator) Will register the decorated function to be called when the
+        bot is closing down.
+
+        :param priority: whether the function is a high priority teardown (it
+         gets called before lower priority functions)
+
+        Usage: ::
+
+            @bot.teardown
+            def save():
+                json.dump(open("state", "w"), history)
+
+        """
+        def decorated(function):
+            self._teardown.insert(0 if priority else len(self._teardown),
+                                  (logger.current_plugin(),
+                                  clean_args(function)))
             return function
 
         return decorated(function) if function else decorated
