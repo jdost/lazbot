@@ -2,19 +2,12 @@ import unittest
 from lazbot.filter import Filter
 from lazbot.events.message import Message
 from lazbot.events import events
-
-
-class FakeBot(object):
-    def get_channel(self, a):
-        return a
-
-    def get_user(self, a):
-        return a
+from lazbot.test import TestBot
 
 
 class FilterTest(unittest.TestCase):
     def setUp(self):
-        self.bot = FakeBot()
+        self.bot = TestBot()
         self.response = None
 
         def handler(**kwargs):
@@ -59,12 +52,12 @@ class FilterTest(unittest.TestCase):
         filter = Filter(self.bot, match_txt="<username:who> says hi",
                         handler=self.handler, regex=True)
         filter(self.message("<@U1234> says hi"))
-        self.assertDictContainsSubset({"who": "<@U1234>"}, self.response)
+        self.assertDictContainsSubset({"who": "U1234"}, self.response)
 
         filter = Filter(self.bot, match_txt="<channel:who> wants you",
                         handler=self.handler, regex=True)
         filter(self.message("<#C1234> wants you"))
-        self.assertDictContainsSubset({"who": "<#C1234>"}, self.response)
+        self.assertDictContainsSubset({"who": "C1234"}, self.response)
 
     def test_dynamic_arguments(self):
         ''' Confirm that the handler's argument signature is honored
@@ -82,4 +75,4 @@ class FilterTest(unittest.TestCase):
         filter = Filter(self.bot, match_txt="*", handler=test_handler)
         self.assertEqual(
             filter(Message(self.bot, message)),
-            ("dynamic", "#test"))
+            ("dynamic", "test"))
