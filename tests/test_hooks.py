@@ -2,6 +2,14 @@ from lazbot.test import TestBase
 from lazbot import logger
 
 
+def priority_handler():
+    return "priority"
+
+
+def non_priority_handler():
+    return "non priority"
+
+
 class ListenTest(TestBase):
     def test_listen_base_filter(self):
         ''' Test the basic listening filter
@@ -82,9 +90,6 @@ class SetupTest(TestBase):
         The ``setup`` hook allows for handlers to be marked as a priority and
         be loaded before others (regardless of the import order).
         '''
-        priority_handler = lambda _: "priority"
-        non_priority_handler = lambda _: "non priority"
-
         self.bot.setup(non_priority_handler)
         self.bot.setup(priority_handler, priority=True)
 
@@ -97,7 +102,7 @@ class SetupTest(TestBase):
         ''' Setup hooks should be namespaced
         The hooks should honor the current plugin namespace during execution.
         '''
-        def trigger_test(*args, **kwargs):
+        def trigger_test():
             self.bot.triggered = True
             self.bot.triggered_values = logger.current_plugin()
 
