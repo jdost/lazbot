@@ -17,7 +17,7 @@ FIXES = [
 
 
 @bot.setup(priority=True)
-def fix_channels(client, channels=[], groups=[], ims=[], **kwargs):
+def fix_channels(client, channels=[], groups=[], ims=[]):
     ''' Take all provided channels, groups, and ims from login  and create the
     rich `Channel` objects for them and add to the bot's lookup dictionary.
     '''
@@ -44,7 +44,7 @@ def load_channels():
 
 
 @bot.setup(priority=True)
-def fix_users(client, users, **kwargs):
+def fix_users(client, users):
     ''' Take all provided users from login and create the rich `User` objects
     for them and add to the bot's lookup dictionary.
     '''
@@ -55,7 +55,7 @@ def fix_users(client, users, **kwargs):
 
 
 @bot.on(*CHANNEL_CREATE_EVENTS)
-def channel_created(channel, **kwargs):
+def channel_created(channel):
     ''' Listen for channel creation events and add them to the lookup.
     '''
     bot.channels[channel.id] = channel

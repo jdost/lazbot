@@ -12,12 +12,6 @@ or from the slack event stream.
 General Style
 -------------
 
-All of the hooks provide a range of arguments and it is advised to add in a
-var-keyword_ in order to allow for additional arguments being added to not cause an
-error when the trigger is called.
-
-.. _var-keyword: https://docs.python.org/2/glossary.html#term-parameter
-
 For all slack event hooks, the decorator will take a ``channel`` keyword argument
 that will define a whitelist for which channels the event will be triggered from.
 

@@ -1,11 +1,8 @@
 import logger
-from utils import clean_args
+from utils import clean_args, identity
 
 import re
 
-
-def identity(x):
-    return x
 RegexObject = type(re.compile("regex object"))
 
 

@@ -82,3 +82,7 @@ def clean_args(f):
         return f(*args, **kwargs)
 
     return decorated_function
+
+
+def identity(x):
+    return x

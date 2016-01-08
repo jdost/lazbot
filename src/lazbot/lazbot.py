@@ -10,6 +10,8 @@ from slacker import Slacker
 from websocket import create_connection
 from dateutil.tz import tzutc
 
+from utils import clean_args
+
 import logger
 
 Slacker.DEFAULT_TIMEOUT = 20
@@ -298,7 +300,7 @@ class Lazbot(object):
         Usage: ::
 
             @bot.listen("@me: hi")
-            def greetings(user, channel, **kwargs):
+            def greetings(user, channel):
                 bot.post(channel, text="{!s}, greetings".format(user))
 
         """
@@ -328,14 +330,14 @@ class Lazbot(object):
         Usage: ::
 
             @bot.setup
-            def greetings(**kwargs):
+            def greetings():
                 bot_channel = bot.lookup_channel("#bot-channel")
                 bot.post(bot_channel, text="Hey guys")
 
         """
         def decorated(function):
             self._setup.insert(0 if priority else len(self._setup),
-                               (logger.current_plugin(), function))
+                               (logger.current_plugin(), clean_args(function)))
             return function
 
         return decorated(function) if function else decorated
@@ -363,7 +365,7 @@ class Lazbot(object):
 
             @bot.schedule(when=time(12, 0, 0), after=timedelta(hours=24),
                           recurring=True)
-            def lunchtime(**kwargs):
+            def lunchtime():
                 lunch_channel = bot.lookup_channel("#lunch-reminder")
                 bot.post(lunch_channel, text="Lunch time")
 
@@ -420,20 +422,20 @@ class Lazbot(object):
             typing_count = {}
 
             @bot.on(events.USER_TYPING)
-            def count_typing(user, **kwargs):
+            def count_typing(user):
                 if user not in typing_count:
                     typing_count[user] = 0
 
                 typing_count[user] += 1
 
         """
-        # channel = kwargs["channel"] if "channel" in kwargs else "*"
 
         def decorated(function):
             for event in events:
                 if event not in self._hooks:
                     self._hooks[event] = []
-                self._hooks[event].append(lambda e: function(**e.__dict__()))
+                hook = clean_args(function)
+                self._hooks[event].append(lambda e: hook(**e.__dict__()))
 
             return function
 

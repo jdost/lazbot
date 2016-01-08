@@ -2,8 +2,8 @@ from app import config
 from datetime import datetime, time, date, timedelta, tzinfo
 from dateutil.tz import tzutc
 import logger
+from utils import clean_args, identity
 
-identity = lambda x: x
 tz_config = {
     "utc_offset": config.get("timezone", {}).get("offset", -5),
     "dst": config.get("timezone", {}).get("dst", True),
@@ -74,7 +74,7 @@ class ScheduledTask(object):
             self.delta = delta
             self.next = when
 
-        self._action = action if action else identity
+        self._action = clean_args(action if action else identity)
         self._plugin = logger.current_plugin()
         self.recurring = recurring
         self.done = False
