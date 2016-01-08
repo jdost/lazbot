@@ -2,11 +2,13 @@ import sys
 import json
 import os
 import glob
+from functools import wraps
 
 import logger
 
 from types import ModuleType
-from filter import Filter
+
+from inspect import getargspec
 
 
 def load_plugins(directory, *plugins):
@@ -50,7 +52,33 @@ def lookup_channel(name):
 
 
 def disabled(f):
+    from filter import Filter
     if isinstance(f, Filter):
         f.disable()
 
     return f
+
+
+def clean_args(f):
+    signature = getargspec(f)
+
+    @wraps(f)
+    def decorated_function(*args_, **kwargs_):
+        args, kwargs = [], {}
+
+        if signature.varargs:
+            args = args_
+        else:
+            args = args_[0:len(signature.args)]
+
+        if signature.keywords:
+            kwargs = kwargs_
+        else:
+            kwargs = dict([(k, kwargs_[k])
+                           for k in signature.args
+                           if k in kwargs_])
+
+        print args, kwargs
+        return f(*args, **kwargs)
+
+    return decorated_function
