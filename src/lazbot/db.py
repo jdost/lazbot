@@ -64,5 +64,12 @@ class DbAccess(object):
     def __delitem__(self, name):
         return self.remove(name)
 
+    def has(self, key):
+        db = self._db()
+        return key in db
+
+    def __contains__(self, name):
+        return self.has(name)
+
 
 sys.modules[__name__] = DbAccess()
