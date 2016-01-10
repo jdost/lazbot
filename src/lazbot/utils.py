@@ -78,7 +78,6 @@ def clean_args(f):
                            for k in signature.args
                            if k in kwargs_])
 
-        print args, kwargs
         return f(*args, **kwargs)
 
     return decorated_function
