@@ -17,10 +17,10 @@ CHANNEL = frozenset([CHANNEL_MARKED, CHANNEL_CREATED, CHANNEL_JOINED,
                      CHANNEL_HISTORY_CHANGED])
 IM_CREATED = "im_created"
 IM_OPEN = "im_open"
-IM_CLOSED = "im_closed"
+IM_CLOSE = "im_close"
 IM_MARKED = "im_marked"
 IM_HISTORY_CHANGED = "im_history_changed"
-IM = frozenset([IM_CREATED, IM_OPEN, IM_CLOSED, IM_MARKED,
+IM = frozenset([IM_CREATED, IM_OPEN, IM_CLOSE, IM_MARKED,
                 IM_HISTORY_CHANGED])
 GROUP_JOINED = "group_joined"
 GROUP_LEFT = "group_left"
@@ -54,6 +54,7 @@ PRESENCE_CHANGE = "presence_change"
 MANUAL_PRESENCE_CHANGE = "manual_presence_change"
 PREF_CHANGE = "pref_change"
 USER_CHANGE = "user_change"
+USER = frozenset([USER_CHANGE])
 TEAM_JOIN = "team_join"
 STAR_ADDED = "star_added"
 STAR_REMOVED = "star_removed"

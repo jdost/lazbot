@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 import json
 from ssl import SSLError
 
-from models import User, Channel
+from models import User, Channel, File
 from events import events, build
 from filter import Filter
 from slacker import Slacker
@@ -47,6 +47,7 @@ class Lazbot(object):
 
         Channel.bind_bot(self)
         User.bind_bot(self)
+        File.bind_bot(self)
 
     def _initialize(self):
         self.last_ping = 0

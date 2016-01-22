@@ -8,6 +8,7 @@ import lazbot.logger as logger
 
 CHANNEL_CREATE_EVENTS = [events.CHANNEL_CREATED, events.GROUP_JOINED,
                          events.IM_CREATED]
+USER_CHANGE_EVENTS = [events.USER_CHANGE]
 FIXES = [
     (u'’', '\''),
     (u'“', '\"'),
@@ -48,8 +49,8 @@ def fix_users(client, users):
     ''' Take all provided users from login and create the rich `User` objects
     for them and add to the bot's lookup dictionary.
     '''
-    for user in users:
-        bot.users[user["id"]] = User(user)
+    for user in map(User, users):
+        bot.users[user.id] = user
 
     logger.info("Loaded %d users", len(users))
 
@@ -60,6 +61,14 @@ def channel_created(channel):
     '''
     bot.channels[channel.id] = channel
     logger.info("Added channel %s", channel)
+
+
+@bot.on(*USER_CHANGE_EVENTS)
+def user_updated(user):
+    ''' Listen for user update events and update the user model on the bot.
+    '''
+    bot.users[user.id] = user
+    logger.info("Updated user %s", user)
 
 
 @Message.cleanup_filter

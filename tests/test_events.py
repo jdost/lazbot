@@ -1,8 +1,8 @@
-import unittest
 from lazbot import events
+from lazbot import test
 
 
-class TestEvents(unittest.TestCase):
+class TestEvents(test.TestBase):
     def create(self, evt):
         return events.build(evt)(None, evt)
 
@@ -55,3 +55,23 @@ class TestEvents(unittest.TestCase):
         event = self.create(message)
         self.assertEqual(str(event), "tester (test_channel): test message")
         self.assertHasKeys(event.__dict__(), "ts", "user", "channel", "text")
+
+    def test_build_file(self):
+        ''' File event types are constructed properly
+        File based events get constructed correctly with the additional
+        information.
+        '''
+        file_created = {
+            "type": "file_created",
+            "file": {
+                "name": "test.txt",
+                "title": "Test",
+                "user": "tester",
+                "filetype": "text",
+                "is_public": False,
+            }
+        }
+
+        event = self.create(file_created)
+        self.assertEqual(str(event.file), "Test - test.txt")
+        self.assertHasKeys(event.__dict__(), "file")

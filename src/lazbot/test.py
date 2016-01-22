@@ -1,5 +1,5 @@
 from lazbot import Lazbot
-from models import Channel
+from models import Channel, User, File
 import unittest
 from contextlib import contextmanager
 from functools import wraps
@@ -57,6 +57,8 @@ class TestBase(unittest.TestCase):
         self.triggered = False
         self.triggered_values = None
         self.app = setup(bot=self.bot)
+
+        [a.bind_bot(self.bot) for a in [Channel, User, File]]
 
     def trigger(self, *args, **kwargs):
         self.triggered = True
