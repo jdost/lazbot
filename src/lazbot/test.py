@@ -3,6 +3,7 @@ from models import Channel
 import unittest
 from contextlib import contextmanager
 from functools import wraps
+from .utils import merge, build_namespace
 
 DEFAULT_LOGIN_DATA = {
     "ok": True,
@@ -81,11 +82,6 @@ class TestBase(unittest.TestCase):
     def assertUntriggered(self):
         self.assertFalse(self.triggered, "the event hook was triggered")
 
-    def merge(self, base, **update):
-        x = base.copy()
-        x.update(update)
-        return x
-
     def assertEmpty(self, c):
         self.assertEqual(len(c), 0)
 
@@ -102,14 +98,13 @@ def with_data(**data):
     def decorator(f):
         @wraps(f)
         def decorated(self):
-            self.bot.start(self.merge(self.bot.login_data, **data))
+            self.bot.start(merge(self.bot.login_data, **data))
             return f(self)
         return decorated
     return decorator
 
 
 def setup(bot=None):
-    from .utils import build_namespace
     app = build_namespace("app")
 
     app.config = {}

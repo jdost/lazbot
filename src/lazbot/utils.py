@@ -86,3 +86,9 @@ def clean_args(f):
 
 def identity(x):
     return x
+
+
+def merge(base, **update):
+    x = base.copy()
+    x.update(update)
+    return x

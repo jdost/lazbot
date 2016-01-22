@@ -6,7 +6,7 @@ from shutil import rmtree
 
 class DbTest(unittest.TestCase):
     def setUp(self):
-        db.setup({"data_dir": "/tmp/test_data"})
+        db.setup({"dir": "/tmp/test_data"})
 
     def tearDown(self):
         rmtree("/tmp/test_data")

@@ -3,7 +3,8 @@ import sys
 
 class DbAccess(object):
     config = {
-        "data_dir": "data",
+        "dir": "data",
+        "backend": "anydbm",
     }
     JSON_CONFIG = {}
 
@@ -12,12 +13,13 @@ class DbAccess(object):
 
     def setup(self, config=None):
         import os
+        from lazbot.utils import merge
 
         if config:
-            self.config = config
+            self.config = merge(self.config, **config)
 
-        if not os.path.exists(self.config["data_dir"]):
-            os.mkdir(self.config["data_dir"])
+        if not os.path.exists(self.config["dir"]):
+            os.mkdir(self.config["dir"])
 
     def close(self):
         for db in self.dbs.values():
@@ -25,13 +27,18 @@ class DbAccess(object):
 
     def _db(self):
         from lazbot.logger import current_plugin
-        import anydbm
         import os.path as path
 
         plugin = current_plugin()
         if plugin not in self.dbs:
-            self.dbs[plugin] = anydbm.open(
-                path.join(self.config["data_dir"], plugin), "c")
+            if self.config["backend"] == "anydbm":
+                import anydbm
+                self.dbs[plugin] = anydbm.open(
+                    path.join(self.config["dir"], plugin), "c")
+            elif self.config["backend"] == "shelve":
+                import shelve
+                self.dbs[plugin] = shelve.open(
+                    path.join(self.config["dir"], plugin))
 
         return self.dbs[plugin]
 
