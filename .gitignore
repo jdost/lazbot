@@ -2,3 +2,5 @@ config.json
 src/plugins/*
 
 docs/build/*
+
+data

@@ -55,7 +55,7 @@ def log(*args, **kwargs):
 
 @contextlib.contextmanager
 def scope(name):
-    """Runs code insode of a specified context
+    """Runs code inside of a specified context
     Any code run within the context will have a plugin name as specified.  This
     is used for controlled data access, logging, and other things.
     """
