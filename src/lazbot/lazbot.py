@@ -11,7 +11,7 @@ from websocket import create_connection
 from dateutil.tz import tzutc
 from functools import wraps
 
-from utils import clean_args
+from utils import clean_args, Retry
 
 import logger
 
@@ -62,7 +62,7 @@ class Lazbot(object):
         }
         self.client = None
         self.stream = True
-        self.can_reconnect = False
+        self.reconnector = Retry(self.reconnect, can_reconnect=False)
 
     def connect(self):
         """Connect this Slack bot to the Slack servers
@@ -97,16 +97,17 @@ class Lazbot(object):
 
         return reply.body
 
-    def start(self):
+    def start(self, connected=False):
         """Start up the bot process
 
         Calls the ``connect`` method and then (if ``stream`` is set) begins the
         event loop, reading events off of the socket, running scheduled tasks,
         and keeping the connection alive.
         """
-        login_data = self.connect()
-        if not login_data:
-            return None
+        if not connected:
+            login_data = self.connect()
+            if not login_data:
+                return None
 
         self.running = True
         for name, handler in self._setup:
@@ -132,9 +133,11 @@ class Lazbot(object):
         self.socket.close()
 
     def reconnect(self):
-        self.stop()
-        if self.can_reconnect:
-            self.start()
+        try:
+            self.stop()
+            return self.connect() is not None
+        except:
+            return False
 
     def parse_login_data(self, login_data):
         self.domain = login_data["team"]["domain"]
@@ -231,7 +234,7 @@ class Lazbot(object):
             raise
         except Exception as ex:
             logger.error("Websocket issue: %s", ex)
-            return self.reconnect()
+            return self.reconnector()
 
         return data.rstrip()
 

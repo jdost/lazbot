@@ -2,6 +2,8 @@ import sys
 import json
 import os
 import glob
+import time
+import random
 from functools import wraps
 
 import logger
@@ -85,3 +87,54 @@ def clean_args(f):
 
 def identity(x):
     return x
+
+
+class Retry(object):
+    GROWTH_RATE = 1000
+    BASE = 1000
+    RAND_MAX = 500
+
+    def __init__(self, action, can_reconnect=False, max_tries=5, wait=False,
+                 growth=True, randomized=False):
+        self.action = action
+        self.can_reconnect = can_reconnect
+        self.max_tries = 5
+        self.wait = wait
+        self.growth = growth
+        self.randomized = randomized
+        self.attempt_count = 0
+
+    def _calc_wait(self):
+        wait = self.BASE
+        if self.growth:
+            wait += self.attempt_count * self.GROWTH_RATE
+
+        if self.randomized:
+            wait += random.randint(0, self.RAND_MAX)
+
+        return wait
+
+    def attempt(self):
+        if not self.can_reconnect:
+            return False
+
+        if self.attempt_count >= self.max_tries:
+            return False
+
+        if self.wait:
+            time.sleep(self._calc_wait())
+
+        return True
+
+    def reset(self):
+        self.attempt_count = 0
+
+    def __call__(self):
+        if self.attempt():
+            if self.action():
+                logger.info("{} was successful", self.action.__name__)
+                self.reset()
+            else:
+                logger.info("{} failed on attempt {}", self.action.__name__,
+                            self.attempt_count)
+                self.attempt_count += 1
