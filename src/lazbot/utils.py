@@ -4,7 +4,7 @@ import os
 import glob
 from functools import wraps
 
-import logger
+from plugin import Plugin
 
 from types import ModuleType
 
@@ -20,13 +20,7 @@ def load_plugins(directory, *plugins):
                     glob.glob(os.path.join(directory, "*")) if
                     os.path.isdir(p)]
 
-    for plugin in plugins:
-        if not plugin:
-            continue
-        logger.current_plugin(plugin)
-        with logger.scope(plugin):
-            logger.info("Loading plugin: %s", plugin)
-            __import__(plugin)
+    [Plugin(plugin) for plugin in plugins if plugin]
 
 
 def load_config(config_filename):
@@ -84,4 +78,10 @@ def clean_args(f):
 
 
 def identity(x):
+    return x
+
+
+def merge(base, update):
+    x = base.copy()
+    x.update(update)
     return x

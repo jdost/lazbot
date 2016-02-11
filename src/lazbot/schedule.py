@@ -3,6 +3,8 @@ from datetime import datetime, time, date, timedelta, tzinfo
 from dateutil.tz import tzutc
 import logger
 from utils import clean_args, identity
+from plugin import Hook
+from events import events
 
 tz_config = {
     "utc_offset": config.get("timezone", {}).get("offset", -5),
@@ -22,7 +24,7 @@ class tz(tzinfo):
         return timedelta(hours=1 if self.is_dst else 0)
 
 
-class ScheduledTask(object):
+class ScheduledTask(Hook):
     """ Setup one time or recurring scheduled task
 
     Will attempt to figure out the next time the action should be run and
@@ -78,12 +80,12 @@ class ScheduledTask(object):
             self.delta = delta
             self.next = when
 
-        self._action = clean_args(action if action else identity)
-        self._plugin = logger.current_plugin()
         self.recurring = recurring
         self.done = False
         self.name = name
 
+        Hook.__init__(self, events.TASK,
+                      clean_args(action if action else identity))
         logger.debug(self)
 
     def __ge__(self, other):
@@ -117,7 +119,7 @@ class ScheduledTask(object):
         return (other - self.next).total_seconds()
 
     def __str__(self):
-        return "Running {!s} at {!s}".format(self._action.__name__, self.next)
+        return "Running {!s} at {!s}".format(self.handler.__name__, self.next)
 
     def __call__(self, quiet=False, *args, **kwargs):
         if quiet:
@@ -130,5 +132,6 @@ class ScheduledTask(object):
         else:
             self.done = True
 
-        with logger.scope(self._plugin):
-            return self._action(*args, **kwargs)
+        with logger.scope(self.plugin):
+            return self.handler(*args, **kwargs) if self.handler else \
+                Hook.removed()

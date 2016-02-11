@@ -71,3 +71,7 @@ BOT_ADDED = "bot_added"
 BOT_CHANGED = "bot_changed"
 ACCOUNTS_CHANGED = "accounts_changed"
 TEAM_MIGRATION_STARTED = "team_migration_started"
+
+# Internal Events
+SETUP = "_setup"
+TASK = "_task"

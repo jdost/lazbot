@@ -3,15 +3,16 @@ from datetime import datetime, timedelta
 import json
 from ssl import SSLError
 
-from models import User, Channel, File
+from models import Model, User
 from events import events, build
 from filter import Filter
 from slacker import Slacker
 from websocket import create_connection
 from dateutil.tz import tzutc
 from functools import wraps
+from plugin import Hook
 
-from utils import clean_args
+from utils import clean_args, merge
 
 import logger
 
@@ -45,20 +46,19 @@ class Lazbot(object):
         self.schedule(self.__cleanup, after=timedelta(minutes=1),
                       recurring=True)
 
-        Channel.bind_bot(self)
-        User.bind_bot(self)
-        File.bind_bot(self)
+        Model.bind_bot(self)
+        Hook.bind_bot(self)
 
     def _initialize(self):
         self.last_ping = 0
         self.channels = {}
         self.users = {}
-        self._setup = []
-        self._scheduled_tasks = []
         self._translations = []
         self._ignore = []
         self._hooks = {
-            events.MESSAGE: []
+            events.MESSAGE: [],
+            events.SETUP: [],
+            events.TASK: [],
         }
         self.client = None
         self.stream = True
@@ -109,9 +109,8 @@ class Lazbot(object):
             return None
 
         self.running = True
-        for name, handler in self._setup:
-            with logger.scope(name):
-                handler(self.client, **login_data)
+        for handler in self._hooks[events.SETUP]:
+            handler(merge(login_data, {"client": self.client}))
 
         if not self.stream:
             return
@@ -259,22 +258,20 @@ class Lazbot(object):
             if event.channel and str(event.channel) in self._ignore:
                 continue
             logger.debug(unicode(event))
-            if event.type not in self._hooks:
-                return
-            for filter in self._hooks[event.type]:
-                filter(event)
+            for hook in self._hooks.get(event.type, []):
+                hook(event)
 
     def __check_tasks(self):
         now = datetime.now(tzutc())
-        for task in self._scheduled_tasks:
+        for task in self._hooks[events.TASK]:
             if task <= now:
                 task()
 
     def __cleanup(self):
-        old_length = len(self._scheduled_tasks)
-        self._scheduled_tasks = [task for task in self._scheduled_tasks
-                                 if not task.done]
-        new_length = len(self._scheduled_tasks)
+        old_length = len(self._hooks[events.TASK])
+        self._hooks[events.TASK] = [task for task in self._hooks[events.TASK]
+                                    if not task.done]
+        new_length = len(self._hooks[events.TASK])
 
         if old_length > new_length:
             logger.info("Cleaned up %d finished tasks",
@@ -308,7 +305,6 @@ class Lazbot(object):
         """
         def decorated(function):
             new_filter = wraps(function)(Filter(
-                bot=self,
                 match_txt=filter,
                 handler=function,
                 channels=channel,
@@ -338,8 +334,9 @@ class Lazbot(object):
 
         """
         def decorated(function):
-            self._setup.insert(0 if priority else len(self._setup),
-                               (logger.current_plugin(), clean_args(function)))
+            function = Hook(events.SETUP, clean_args(function))
+            self._hooks[events.SETUP].insert(
+                0 if priority else len(self._hooks[events.SETUP]), function)
             return function
 
         return decorated(function) if function else decorated
@@ -382,7 +379,7 @@ class Lazbot(object):
                 ScheduledTask(action=function, delta=after,
                               when=when, recurring=recurring,
                               name=name))
-            self._scheduled_tasks.append(task)
+            self._hooks[events.TASK].append(task)
             return task
 
         return decorated(function) if function else decorated
@@ -441,8 +438,8 @@ class Lazbot(object):
             for event in events:
                 if event not in self._hooks:
                     self._hooks[event] = []
-                hook = clean_args(function)
-                self._hooks[event].append(lambda e: hook(**e.__dict__()))
+                self._hooks[event].append(
+                    wraps(function)(Hook(event, function)))
 
             return function
 

@@ -1,8 +1,10 @@
 from lazbot import Lazbot
-from models import Channel, User, File
+from models import Model
+from plugin import Hook
 import unittest
 from contextlib import contextmanager
 from functools import wraps
+from utils import merge
 
 DEFAULT_LOGIN_DATA = {
     "ok": True,
@@ -31,7 +33,7 @@ class TestBot(Lazbot):
         self.login_data = DEFAULT_LOGIN_DATA
         self.stream = False
         self.can_reconnect = False
-        Channel.bind_bot(self)
+        Model.bind_bot(self)
 
     def connect(self, login_data=DEFAULT_LOGIN_DATA):
         self.client = FakeClient()
@@ -58,7 +60,7 @@ class TestBase(unittest.TestCase):
         self.triggered_values = None
         self.app = setup(bot=self.bot)
 
-        [a.bind_bot(self.bot) for a in [Channel, User, File]]
+        [a.bind_bot(self.bot) for a in [Model, Hook]]
 
     def trigger(self, *args, **kwargs):
         self.triggered = True
@@ -84,9 +86,7 @@ class TestBase(unittest.TestCase):
         self.assertFalse(self.triggered, "the event hook was triggered")
 
     def merge(self, base, **update):
-        x = base.copy()
-        x.update(update)
-        return x
+        return merge(base, update)
 
     def assertEmpty(self, c):
         self.assertEqual(len(c), 0)
