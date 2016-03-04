@@ -128,6 +128,9 @@ class Lazbot(object):
 
         Closes the socket and turns listeners off
         """
+        if not self.running:
+            return
+
         logger.info("Stopping bot")
         self.running = False
         self.socket.close()

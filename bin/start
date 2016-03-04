@@ -3,6 +3,7 @@ from lazbot import utils
 from lazbot import logger
 import os
 import sys
+import traceback
 
 app = utils.build_namespace("app")
 
@@ -23,7 +24,13 @@ if __name__ == "__main__":
     plugins = app.config.get("plugins", [])
     utils.load_plugins(os.path.join(directory, "src", "plugins"), *plugins)
     try:
-        app.bot.start()
+        while app.bot.reconnect():
+            try:
+                app.bot.start()
+            except KeyboardInterrupt as err:
+                raise err
+            except:
+                logger.error(traceback.format_exc())
     except KeyboardInterrupt:
         sys.exit(0)
 
