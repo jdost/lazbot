@@ -64,6 +64,7 @@ class TestEvents(test.TestBase):
         file_created = {
             "type": "file_created",
             "file": {
+                "id": "test",
                 "name": "test.txt",
                 "title": "Test",
                 "user": "tester",

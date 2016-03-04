@@ -85,3 +85,31 @@ def clean_args(f):
 
 def identity(x):
     return x
+
+
+def compare(a, b, keys):
+    diff = {}
+
+    def compare_generic(key):
+        a_value = getattr(a, key)
+        b_value = getattr(b, key)
+        if a_value != a_value:
+            diff[key] = (a_value, b_value, 'generic')
+
+    def compare_sets(key):
+        a_value = getattr(a, key)
+        b_value = getattr(b, key)
+
+        added = b_value - a_value
+        removed = b_value - a_value
+
+        if added or removed:
+            diff[key] = (removed, added, 'set')
+
+    for key in keys:
+        if isinstance(getattr(a, key), set):
+            compare_sets(key)
+        else:
+            compare_generic(key)
+
+    return diff

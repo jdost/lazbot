@@ -5,6 +5,8 @@ class Model(object):
 
 
 class User(Model):
+    KEYS = ["name", "real_name"]
+
     def __init__(self, data):
         self.id = data["id"]
         self.name = data["name"]
@@ -78,6 +80,8 @@ class Channel(Model):
 
 
 class File(Model):
+    KEYS = ["name", "title", "type", "is_public", "owner", "shared"]
+
     def __init__(self, data):
         self.name = data["name"]
         self.title = data["title"]
@@ -87,8 +91,9 @@ class File(Model):
         self.is_public = data["is_public"]
 
         if any([x in data for x in ["channels", "groups", "ims"]]):
-            self.shared = map(self.bot.get_channel,
-                              data["channels"] + data["groups"] + data["ims"])
+            self.shared = set(map(self.bot.get_channel,
+                                  data["channels"] + data["groups"] +
+                                  data["ims"]))
 
     def __str__(self):
         return '{} - {}'.format(self.title, self.name)

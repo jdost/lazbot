@@ -53,6 +53,7 @@ class Lazbot(object):
         self.last_ping = 0
         self.channels = {}
         self.users = {}
+        self.files = {}
         self._setup = []
         self._scheduled_tasks = []
         self._translations = []

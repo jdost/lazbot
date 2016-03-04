@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from app import bot
-from lazbot.models import Channel, User
+from lazbot.utils import compare
+from lazbot.models import Channel, User, File
 from lazbot.events import Message
 from lazbot.events import events
 import lazbot.logger as logger
@@ -9,12 +10,23 @@ import lazbot.logger as logger
 CHANNEL_CREATE_EVENTS = [events.CHANNEL_CREATED, events.GROUP_JOINED,
                          events.IM_CREATED]
 USER_CHANGE_EVENTS = [events.USER_CHANGE]
+FILE_CHANGE_EVENTS = events.FILE - set([events.FILE_CREATED,
+                                        events.FILE_DELETED])
 FIXES = [
     (u'’', '\''),
     (u'“', '\"'),
     (u'”', '\"'),
     (u'…', '...'),
 ]
+
+
+def log_diff(diff):
+    for (key, value) in diff.iteritems():
+        if value[2] == 'set':
+            logger.info("Removed from %s: %s", key, ", ".join(*value[0]))
+            logger.info("Added to %s: %s", key, ", ".join(*value[1]))
+        else:
+            logger.info("Value %s changed: %s -> %s", key, value[0], value[1])
 
 
 @bot.setup(priority=True)
@@ -63,12 +75,33 @@ def channel_created(channel):
     logger.info("Added channel %s", channel)
 
 
+@bot.on(events.FILE_CREATED)
+def file_created(file):
+    ''' Listen for file creation events and add them to the lookup table.
+    '''
+    bot.files[file.id] = file
+
+
+@bot.on(*FILE_CHANGE_EVENTS)
+def file_updated(file):
+    ''' Listen for file update events and update the file model on the bot
+    '''
+    logger.info("Updated file %s", file)
+    diff = compare(bot.files[file.id], file, File.KEYS)
+    log_diff(diff)
+
+    bot.files[file.id] = file
+
+
 @bot.on(*USER_CHANGE_EVENTS)
 def user_updated(user):
     ''' Listen for user update events and update the user model on the bot.
     '''
-    bot.users[user.id] = user
     logger.info("Updated user %s", user)
+    diff = compare(bot.users[user.id], user, User.KEYS)
+    log_diff(diff)
+
+    bot.users[user.id] = user
 
 
 @Message.cleanup_filter
