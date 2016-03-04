@@ -93,5 +93,8 @@ class File(Model):
     def __str__(self):
         return '{} - {}'.format(self.title, self.name)
 
+    def __unicode__(self):
+        return '{} - {}'.format(self.title, self.name)
+
     def __repr__(self):
         return '<{}:{}>'.format(self.name, self.type)
