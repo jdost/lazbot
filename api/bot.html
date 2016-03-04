@@ -167,7 +167,7 @@ treated as a regex string</li>
 </table>
 <p>Usage:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="nd">@bot.listen</span><span class="p">(</span><span class="s">&quot;@me: hi&quot;</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">greetings</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">greetings</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">channel</span><span class="p">):</span>
     <span class="n">bot</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s">&quot;{!s}, greetings&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">user</span><span class="p">))</span>
 </pre></div>
 </div>
@@ -193,7 +193,7 @@ what these could be).</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">typing_count</span> <span class="o">=</span> <span class="p">{}</span>
 
 <span class="nd">@bot.on</span><span class="p">(</span><span class="n">events</span><span class="o">.</span><span class="n">USER_TYPING</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">count_typing</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">count_typing</span><span class="p">(</span><span class="n">user</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">user</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">typing_count</span><span class="p">:</span>
         <span class="n">typing_count</span><span class="p">[</span><span class="n">user</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
 
@@ -210,7 +210,7 @@ what these could be).</p>
 
 <dl class="method">
 <dt id="lazbot.Lazbot.schedule">
-<tt class="descname">schedule</tt><big>(</big><em>function=None</em>, <em>when=None</em>, <em>after=None</em>, <em>recurring=False</em><big>)</big><a class="headerlink" href="#lazbot.Lazbot.schedule" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">schedule</tt><big>(</big><em>function=None</em>, <em>when=None</em>, <em>after=None</em>, <em>recurring=False</em>, <em>name=None</em><big>)</big><a class="headerlink" href="#lazbot.Lazbot.schedule" title="Permalink to this definition">¶</a></dt>
 <dd><p>Register a scheduled task</p>
 <p>(decorator) Will register the decorated function (or can register a
 function normally) to be run at a specific time, after a specific time
@@ -229,6 +229,8 @@ midnight, if a <tt class="docutils literal"><span class="pre">time</span></tt> i
 task will be run from now</li>
 <li><strong>recurring</strong> &#8211; if set to True, the task will be run again after it
 is completed, the <tt class="docutils literal"><span class="pre">after</span></tt> param is required for this</li>
+<li><strong>name</strong> &#8211; (optional) a name to provide to the task, useful for any
+attempts at resolving duplicate creation</li>
 </ul>
 </td>
 </tr>
@@ -239,7 +241,7 @@ is completed, the <tt class="docutils literal"><span class="pre">after</span></t
 
 <span class="nd">@bot.schedule</span><span class="p">(</span><span class="n">when</span><span class="o">=</span><span class="n">time</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">after</span><span class="o">=</span><span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="mi">24</span><span class="p">),</span>
               <span class="n">recurring</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">lunchtime</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">lunchtime</span><span class="p">():</span>
     <span class="n">lunch_channel</span> <span class="o">=</span> <span class="n">bot</span><span class="o">.</span><span class="n">lookup_channel</span><span class="p">(</span><span class="s">&quot;#lunch-reminder&quot;</span><span class="p">)</span>
     <span class="n">bot</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">lunch_channel</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s">&quot;Lunch time&quot;</span><span class="p">)</span>
 </pre></div>
@@ -263,7 +265,7 @@ called with other high priority setup functions)</td>
 </table>
 <p>Usage:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="nd">@bot.setup</span>
-<span class="k">def</span> <span class="nf">greetings</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">greetings</span><span class="p">():</span>
     <span class="n">bot_channel</span> <span class="o">=</span> <span class="n">bot</span><span class="o">.</span><span class="n">lookup_channel</span><span class="p">(</span><span class="s">&quot;#bot-channel&quot;</span><span class="p">)</span>
     <span class="n">bot</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">bot_channel</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s">&quot;Hey guys&quot;</span><span class="p">)</span>
 </pre></div>

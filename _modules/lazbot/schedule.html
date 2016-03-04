@@ -56,8 +56,8 @@
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="n">date</span><span class="p">,</span> <span class="n">timedelta</span><span class="p">,</span> <span class="n">tzinfo</span>
 <span class="kn">from</span> <span class="nn">dateutil.tz</span> <span class="kn">import</span> <span class="n">tzutc</span>
 <span class="kn">import</span> <span class="nn">logger</span>
+<span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">clean_args</span><span class="p">,</span> <span class="n">identity</span>
 
-<span class="n">identity</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span>
 <span class="n">tz_config</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s">&quot;utc_offset&quot;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;timezone&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;offset&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mi">5</span><span class="p">),</span>
     <span class="s">&quot;dst&quot;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;timezone&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;dst&quot;</span><span class="p">,</span> <span class="bp">True</span><span class="p">),</span>
@@ -106,9 +106,13 @@
 <span class="sd">    :param recurring: boolean flag for whether this task should be run more</span>
 <span class="sd">     than once</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">when</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">recurring</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">when</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">recurring</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">when</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">delta</span><span class="p">:</span>
             <span class="k">raise</span> <span class="s">&quot;Need a time or time span to schedule at&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">action</span><span class="o">.</span><span class="n">__name__</span>
 
         <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">when</span><span class="p">)</span> <span class="o">==</span> <span class="n">time</span><span class="p">:</span>
             <span class="n">today</span> <span class="o">=</span> <span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span>
@@ -128,10 +132,11 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">delta</span> <span class="o">=</span> <span class="n">delta</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">next</span> <span class="o">=</span> <span class="n">when</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_action</span> <span class="o">=</span> <span class="n">action</span> <span class="k">if</span> <span class="n">action</span> <span class="k">else</span> <span class="n">identity</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_action</span> <span class="o">=</span> <span class="n">clean_args</span><span class="p">(</span><span class="n">action</span> <span class="k">if</span> <span class="n">action</span> <span class="k">else</span> <span class="n">identity</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_plugin</span> <span class="o">=</span> <span class="n">logger</span><span class="o">.</span><span class="n">current_plugin</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">recurring</span> <span class="o">=</span> <span class="n">recurring</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">done</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
 
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
