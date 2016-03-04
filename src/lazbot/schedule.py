@@ -132,6 +132,6 @@ class ScheduledTask(Hook):
         else:
             self.done = True
 
-        with logger.scope(self.plugin):
+        with self.context():
             return self.handler(*args, **kwargs) if self.handler else \
                 Hook.removed()

@@ -1,6 +1,5 @@
 from lazbot import Lazbot
 from lazbot import utils
-from lazbot import logger
 
 import code
 import os
@@ -13,11 +12,11 @@ app.bot.stream = False
 
 directory = os.path.dirname(sys.argv[0]) + "/.."
 
-plugins = app.config.get("plugins", None)
-utils.load_plugins(os.path.join(directory, "src", "plugins"), [])
-for plugin in plugins:
-    with logger.scope(plugin):
-        locals()[plugin] = __import__(plugin)
+plugins = utils.load_plugins(
+    os.path.join(directory, "src", "plugins"), app.config.get("plugins", []))
+
+for (name, plugin) in plugins.iteritems():
+    locals()[name] = plugin
 
 
 def connect():

@@ -1,6 +1,6 @@
 from lazbot import Lazbot
 from models import Model
-from plugin import Hook
+from plugin import Hook, Plugin
 import unittest
 from contextlib import contextmanager
 from functools import wraps
@@ -53,6 +53,11 @@ class TestBot(Lazbot):
         self._read(evts)
 
 
+class TestPlugin(Plugin):
+    def __init__(self, name="tester"):
+        Plugin.__init__(self, name, load=False)
+
+
 class TestBase(unittest.TestCase):
     def setUp(self):
         self.bot = TestBot()
@@ -61,6 +66,8 @@ class TestBase(unittest.TestCase):
         self.app = setup(bot=self.bot)
 
         [a.bind_bot(self.bot) for a in [Model, Hook]]
+
+        self.plugin = TestPlugin()
 
     def trigger(self, *args, **kwargs):
         self.triggered = True

@@ -1,4 +1,5 @@
 import logger
+from contextlib import contextmanager
 
 _plugins = {}
 
@@ -10,14 +11,15 @@ class Plugin(object):
     that exist as hooks.  This can be used for both unloading an entire plugin
     or for reloading a plugin.
     """
-    def __init__(self, name):
+    def __init__(self, name, load=True):
         self.name = name
         self.loaded = False
         self.hooks = []
         self.module = None
         _plugins[name] = self
 
-        self.load()
+        if load:
+            self.load()
 
     @classmethod
     def find(cls, name):
@@ -36,7 +38,7 @@ class Plugin(object):
         logger.current_plugin(self)
         logger.info("Loading plugin: %s", self)
 
-        with logger.scope(self):
+        with self.context():
             self.module = __import__(self.name)
 
         logger.info("Loaded plugin: %s", self)
@@ -49,7 +51,7 @@ class Plugin(object):
         the overall system so that the plugin can be dropped from memory.
         """
         logger.info("Unloading plugin: %s", self)
-        with logger.scope(self):
+        with self.context():
             for hook in self.hooks:
                 hook.unload()
             logger.info("Unloaded %d hooks", len(self.hooks))
@@ -62,6 +64,18 @@ class Plugin(object):
     def register(self, hook):
         if hook not in self.hooks:
             self.hooks.append(hook)
+
+    @contextmanager
+    def context(self):
+        from app import config
+
+        original_context = config.context()
+        config.context(self.name)
+
+        with logger.scope(self.name):
+            yield
+
+        config.context(original_context)
 
     def __str__(self):
         return self.name
@@ -87,9 +101,18 @@ class Hook(object):
             self.plugin.register(self)
 
     def __call__(self, event):
-        with logger.scope(self.plugin):
+        with self.context():
             info = event if isinstance(event, dict) else event.__dict__()
             return self.handler(**info) if self.handler else Hook.removed()
+
+    @contextmanager
+    def context(self):
+        if isinstance(self.plugin, Plugin):
+            with self.plugin.context():
+                yield
+        else:
+            with logger.scope(self.plugin):
+                yield
 
     def unload(self):
         """ Remove contained reference to plugin function

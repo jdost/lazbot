@@ -106,11 +106,11 @@ class SetupTest(TestBase):
             self.bot.triggered = True
             self.bot.triggered_values = logger.current_plugin()
 
-        with logger.scope("test_hooks"):
+        with self.plugin.context():
             self.bot.setup(trigger_test)
 
-        self.assertEquals(self.bot._setup[0], ('test_hooks', trigger_test))
+        self.assertEquals(self.bot._setup[0], ('tester', trigger_test))
 
         with self.assertTriggers():
             self.bot.start()
-            self.assertEquals(self.triggered_values, 'test_hooks')
+            self.assertEquals(self.triggered_values, 'tester')
