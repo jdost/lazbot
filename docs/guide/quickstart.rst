@@ -31,7 +31,7 @@ example would be something like::
    from datetime import datetime
 
    @bot.listen("what time is it?")
-   def tell_time(user, channel, **kwargs):
+   def tell_time(user, channel):
       bot.post(channel,
          text="{!s} it is {!s}".format(user, datetime.now().time())
       )

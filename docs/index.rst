@@ -14,7 +14,7 @@ event scheduling, and navigating the Slack API.
    from app import bot
 
    @bot.listen("@me: hello!")
-   def hello(user, channel, **kwargs):
+   def hello(user, channel):
       bot.post(
          channel=channel,
          text="Hello {!s}".format(user),
