@@ -83,7 +83,9 @@ class File(Model):
     KEYS = ["name", "title", "type", "is_public", "owner", "shared"]
 
     def __init__(self, data):
+        self.id = data["id"]
         self.name = data["name"]
+
         self.title = data["title"]
         self.owner = self.bot.get_user(data["user"])
         self.type = data["filetype"]
@@ -99,7 +101,7 @@ class File(Model):
         return '{} - {}'.format(self.title, self.name)
 
     def __unicode__(self):
-        return '{} - {}'.format(self.title, self.name)
+        return u'{} - {}'.format(unicode(self.title), unicode(self.name))
 
     def __repr__(self):
         return '<{}:{}>'.format(self.name, self.type)

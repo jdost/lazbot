@@ -28,4 +28,4 @@ class Channel(Event):
         }
 
     def __unicode__(self):
-        return "{!s}: {!s}".format(self.type, self.channel)
+        return u"{!s}: {!s}".format(self.type, self.channel)

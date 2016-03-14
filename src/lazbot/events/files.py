@@ -17,4 +17,4 @@ class File(Event):
         }
 
     def __unicode__(self):
-        return "{!s}: {!u}".format(self.type, self.file)
+        return u"{!s}: {}".format(self.type, unicode(self.file))

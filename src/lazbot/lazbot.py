@@ -36,7 +36,8 @@ class Lazbot(object):
     """
     ping_packet = json.dumps({"type": "ping"})
     PING_INTERVAL = 3
-    IGNORED_EVENTS = [events.PONG, events.USER_TYPING, events.PRESENCE_CHANGE]
+    IGNORED_EVENTS = [events.PONG, events.USER_TYPING, events.PRESENCE_CHANGE,
+                      events.RECONNECT_URL]
 
     def __init__(self, token):
         self.token = token

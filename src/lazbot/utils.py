@@ -113,3 +113,11 @@ def compare(a, b, keys):
             compare_generic(key)
 
     return diff
+
+
+def first(f, iter):
+    for i in iter:
+        if f(i):
+            return i
+
+    return None
