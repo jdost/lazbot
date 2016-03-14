@@ -3,12 +3,9 @@ import json
 import os
 import glob
 from functools import wraps
-
-import logger
-
 from types import ModuleType
-
 from inspect import getargspec
+from UserDict import DictMixin
 
 
 def load_plugins(directory, *plugins):
@@ -20,17 +17,16 @@ def load_plugins(directory, *plugins):
                     glob.glob(os.path.join(directory, "*")) if
                     os.path.isdir(p)]
 
-    for plugin in plugins:
-        if not plugin:
-            continue
-        logger.current_plugin(plugin)
-        with logger.scope(plugin):
-            logger.info("Loading plugin: %s", plugin)
-            __import__(plugin)
+    from plugin import Plugin
+
+    return dict(zip(
+        filter(plugins),
+        [Plugin(plugin) for plugin in plugins if plugin]
+    ))
 
 
 def load_config(config_filename):
-    return json.load(file(config_filename, 'r'))
+    return Config(config_filename)
 
 
 def build_namespace(name):
@@ -121,3 +117,31 @@ def first(f, iter):
             return i
 
     return None
+
+
+def merge(base, update):
+    x = base.copy()
+    x.update(update)
+    return x
+
+
+class Config(DictMixin):
+    def __init__(self, filename):
+        self.filename = filename
+        self.base = json.load(file(filename, 'r'))
+
+    def context(self, scope=None):
+        if scope:
+            self._context = scope
+            self.context = self.base[scope] if scope else self.base
+        else:
+            return self._context
+
+    def __getitem__(self, key):
+        return self.context[key]
+
+    def __setitem__(self, key, value):
+        self.context[key] = value
+
+    def keys(self):
+        return self.context.keys()

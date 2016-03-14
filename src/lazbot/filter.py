@@ -1,12 +1,14 @@
 import logger
 from utils import clean_args, identity
+from plugin import Hook
+from events import events
 
 import re
 
 RegexObject = type(re.compile("regex object"))
 
 
-class Filter(object):
+class Filter(Hook):
     ''' Logic wrapper for message events
 
     Filter provides a number of helpers to make message filtering, matching,
@@ -99,20 +101,19 @@ class Filter(object):
         else:
             return [str(channels)]
 
-    def __init__(self, bot, match_txt='', handler=None, channels=None,
+    def __init__(self, match_txt='', handler=None, channels=None,
                  regex=False):
-        self.bot = bot
-        self.handler = clean_args(handler if handler else identity)
         self.parser = None
         self.channels = self._cleanup_channels(channels)
         self.disabled = False
-
-        self._plugin = logger.current_plugin()
 
         if regex:
             self.cmp, self.parser = self.compile_regex(match_txt)
         else:
             self.cmp = match_txt
+
+        Hook.__init__(self, events.MESSAGE,
+                      clean_args(handler if handler else identity))
 
     def disable(self):
         ''' Disable message matching
@@ -138,15 +139,13 @@ class Filter(object):
 
     def __call__(self, event=None, direct=False, **kwargs):
         if not event and direct:
-            with logger.scope(self._plugin):
-                return self.handler(**kwargs)
+            return Hook.__call__(self, kwargs)
 
         if self.disabled or not (self == event):
             return
 
         result = self.__parse__(event.text)
-        with logger.scope(self._plugin):
-            return self.handler(**(event + result))
+        return Hook.__call__(self, event + result)
 
     def __eq__(self, target):
         if self.channels and str(target.channel) not in self.channels:

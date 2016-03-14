@@ -76,3 +76,7 @@ SUBTEAM_CREATED = "subteam_created"
 SUBTEAM_UPDATED = "subteam_updated"
 SUBTEAM_SELF_ADDED = "subteam_self_added"
 SUBTEAM_SELF_REMOVED = "subteam_self_removed"
+
+# Internal Events
+SETUP = "_setup"
+TASK = "_task"
