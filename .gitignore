@@ -1,4 +1,5 @@
 config.json
+data/*
 src/plugins/*
 
 docs/build/*

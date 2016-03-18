@@ -15,6 +15,7 @@ from plugin import Hook
 from utils import clean_args, merge
 
 import logger
+import db
 
 Slacker.DEFAULT_TIMEOUT = 20
 
@@ -55,6 +56,7 @@ class Lazbot(object):
         self.channels = {}
         self.users = {}
         self.files = {}
+        self._teardown = []
         self._translations = []
         self._ignore = []
         self._hooks = {
@@ -65,6 +67,9 @@ class Lazbot(object):
         self.client = None
         self.stream = True
         self.can_reconnect = False
+
+    def __teardown(self):
+        db.close()
 
     def connect(self):
         """Connect this Slack bot to the Slack servers
@@ -122,6 +127,10 @@ class Lazbot(object):
             self.__check_tasks()
             self.autoping()
             time.sleep(.1)
+
+        for handler in self._hooks[events.TEARDOWN]:
+            handler()
+        self.__teardown()
 
     def stop(self):
         """Stop the bot process
@@ -338,6 +347,30 @@ class Lazbot(object):
         def decorated(function):
             function = Hook(events.SETUP, clean_args(function))
             self._hooks[events.SETUP].insert(
+                0 if priority else len(self._hooks[events.SETUP]), function)
+            return function
+
+        return decorated(function) if function else decorated
+
+    def teardown(self, function=None, priority=False):
+        """Register a teardown hook
+
+        (decorator) Will register the decorated function to be called when the
+        bot is closing down.
+
+        :param priority: whether the function is a high priority teardown (it
+         gets called before lower priority functions)
+
+        Usage: ::
+
+            @bot.teardown
+            def save():
+                json.dump(open("state", "w"), history)
+
+        """
+        def decorated(function):
+            function = Hook(events.TEARDOWN, clean_args(function))
+            self._hooks[events.TEARDOWN].insert(
                 0 if priority else len(self._hooks[events.SETUP]), function)
             return function
 

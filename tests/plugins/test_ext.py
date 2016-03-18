@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from lazbot.test import TestBase, TestBot, setup, with_data
+from lazbot.utils import merge
 
 app = setup(bot=TestBot())
 from plugins import ext
@@ -23,7 +24,7 @@ TEST_USERS = [
 class ExtTest(TestBase):
     def setUp(self):
         TestBase.setUp(self)
-        self.bot.login_data = self.merge(self.bot.login_data, users=TEST_USERS)
+        self.bot.login_data = merge(self.bot.login_data, users=TEST_USERS)
         self.ext = reload(ext)
 
     @with_data(channels=TEST_CHANNELS, ims=TEST_IMS, groups=TEST_GROUPS)

@@ -80,3 +80,4 @@ SUBTEAM_SELF_REMOVED = "subteam_self_removed"
 # Internal Events
 SETUP = "_setup"
 TASK = "_task"
+TEARDOWN = "_teardown"

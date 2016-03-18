@@ -1,6 +1,7 @@
 #!/bin/env python2
 from lazbot import utils
 from lazbot import logger
+from lazbot import db
 import os
 import sys
 
@@ -22,6 +23,10 @@ if __name__ == "__main__":
     app.bot.ignore(*app.config.get("ignored", []))
     plugins = app.config.get("plugins", [])
     utils.load_plugins(os.path.join(directory, "src", "plugins"), *plugins)
+
+    if "data" in app.config:
+        db.setup(app.config.get("data"))
+
     try:
         app.bot.start()
     except KeyboardInterrupt:

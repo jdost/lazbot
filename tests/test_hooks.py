@@ -1,5 +1,6 @@
 from lazbot.test import TestBase
 from lazbot import logger
+from lazbot.utils import merge
 
 
 def priority_handler():
@@ -19,10 +20,10 @@ class ListenTest(TestBase):
         base_message = {"type": "message"}
 
         with self.assertDoesNotTrigger():
-            self.bot.recv_event(self.merge(base_message, text="no trigger"))
+            self.bot.recv_event(merge(base_message, text="no trigger"))
 
         with self.assertTriggers():
-            self.bot.recv_event(self.merge(base_message, text="test trigger"))
+            self.bot.recv_event(merge(base_message, text="test trigger"))
 
     def test_listen_channel(self):
         ''' Test the channel scoping on a listen filter
@@ -33,10 +34,10 @@ class ListenTest(TestBase):
         base_message = {"type": "message", "text": "test"}
 
         with self.assertDoesNotTrigger():
-            self.bot.recv_event(self.merge(base_message, channel="bad"))
+            self.bot.recv_event(merge(base_message, channel="bad"))
 
         with self.assertTriggers():
-            self.bot.recv_event(self.merge(base_message, channel="test"))
+            self.bot.recv_event(merge(base_message, channel="test"))
 
     def test_listen_regex(self):
         ''' Test the regex listening filter
@@ -47,10 +48,10 @@ class ListenTest(TestBase):
         base_message = {"type": "message"}
 
         with self.assertDoesNotTrigger():
-            self.bot.recv_event(self.merge(base_message, text="asdf"))
+            self.bot.recv_event(merge(base_message, text="asdf"))
 
         with self.assertTriggers():
-            self.bot.recv_event(self.merge(base_message, text="123 456"))
+            self.bot.recv_event(merge(base_message, text="123 456"))
             self.assertEquals(self.triggered_values["nums"], [123, 456])
 
     def test_listen_disabling(self):

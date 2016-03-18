@@ -12,12 +12,6 @@ app.bot.stream = False
 
 directory = os.path.dirname(sys.argv[0]) + "/.."
 
-plugins = utils.load_plugins(
-    os.path.join(directory, "src", "plugins"), app.config.get("plugins", []))
-
-for (name, plugin) in plugins.iteritems():
-    locals()[name] = plugin
-
 
 def connect():
     app.bot.connect()
@@ -39,4 +33,4 @@ predefined:
     app.config -> `$ROOT/config.json`
 
     (plugins) -> {}
-'''.format(', '.join(plugins)), local=locals())
+'''.format(', '.join([])), local=locals())
