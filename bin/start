@@ -22,7 +22,7 @@ if __name__ == "__main__":
 
     app.bot.ignore(*app.config.get("ignored", []))
     plugins = app.config.get("plugins", [])
-    utils.load_plugins(os.path.join(directory, "src", "plugins"), *plugins)
+    utils.load_plugins(os.path.join(directory, "src", "plugins"), plugins)
 
     if "data" in app.config:
         db.setup(app.config.get("data"))

@@ -8,9 +8,15 @@ from inspect import getargspec
 from UserDict import DictMixin
 
 
-def load_plugins(directory, *plugins):
+def load_plugins(directory, plugins=None):
+    if isinstance(plugins, basestring):
+        conf_dir = plugins
+        plugins = []
+        for conf in glob.glob(os.path.join(os.getcwd(), conf_dir, "*.json")):
+            plugins.append(json.load(open(conf, "r")))
+
     sys.path.insert(0, os.path.join(directory))
-    if not len(plugins):
+    if not plugins:
         plugins = [p.split('/')[-1][:-3] for p in
                    glob.glob(os.path.join(directory, "*.py"))]
         plugins += [p.split('/')[-1] for p in

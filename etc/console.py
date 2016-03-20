@@ -13,7 +13,7 @@ app.bot.stream = False
 directory = os.path.dirname(sys.argv[0]) + "/.."
 plugin_info = app.config.get("plugins", [])
 plugins = utils.load_plugins(
-    os.path.join(directory, "src", "plugins"), *plugin_info)
+    os.path.join(directory, "src", "plugins"), plugin_info)
 
 for name, plugin in plugins.items():
     locals()[name] = plugin.module
