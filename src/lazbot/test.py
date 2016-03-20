@@ -1,10 +1,10 @@
 from lazbot import Lazbot
 from models import Model
-from plugin import Hook, Plugin
+from plugin import Hook, Plugin, current_plugin
 import unittest
 from contextlib import contextmanager
 from functools import wraps
-from .utils import merge, build_namespace
+from .utils import merge, build_namespace, Config
 
 DEFAULT_LOGIN_DATA = {
     "ok": True,
@@ -55,7 +55,7 @@ class TestBot(Lazbot):
 
 class TestPlugin(Plugin):
     def __init__(self, name="tester"):
-        Plugin.__init__(self, name, load=False)
+        Plugin.__init__(self, {"plugin": name}, load=False)
 
 
 class TestBase(unittest.TestCase):
@@ -68,6 +68,7 @@ class TestBase(unittest.TestCase):
         [a.bind_bot(self.bot) for a in [Model, Hook]]
 
         self.plugin = TestPlugin()
+        current_plugin(self.plugin)
 
     def trigger(self, *args, **kwargs):
         self.triggered = True
@@ -117,7 +118,7 @@ def with_data(**data):
 def setup(bot=None):
     app = build_namespace("app")
 
-    app.config = {}
+    app.config = Config(value={})
     if bot:
         app.bot = bot
 

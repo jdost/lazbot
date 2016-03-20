@@ -4,13 +4,13 @@ import json
 from ssl import SSLError
 
 from models import Model, User
-from events import events, build
+from events import events, build, Message
 from filter import Filter
 from slacker import Slacker
 from websocket import create_connection
 from dateutil.tz import tzutc
 from functools import wraps
-from plugin import Hook
+from plugin import Hook, current_plugin
 
 from utils import clean_args, merge
 
@@ -56,13 +56,13 @@ class Lazbot(object):
         self.channels = {}
         self.users = {}
         self.files = {}
-        self._teardown = []
         self._translations = []
         self._ignore = []
         self._hooks = {
             events.MESSAGE: [],
             events.SETUP: [],
             events.TASK: [],
+            events.TEARDOWN: [],
         }
         self.client = None
         self.stream = True
@@ -180,7 +180,10 @@ class Lazbot(object):
                     t[0] == "*"],
                 message["text"])
 
-        self.client.chat.post_message(**message)
+        result = self.client.chat.post_message(**message).body
+        result["type"] = "message"
+
+        return Message(self, result)
 
     def get_user(self, user_id):
         """Helper function to lookup rich User object
@@ -256,7 +259,11 @@ class Lazbot(object):
 
         for data in raw_data:
             data = json.loads(data) if isinstance(data, str) else data
-            yield build(data)(self, data)
+            try:
+                yield build(data)(self, data)
+            except:
+                logger.debug(data)
+                raise
 
     def _read(self, data=None):
         data = data if data else self.__read_socket()
@@ -314,16 +321,22 @@ class Lazbot(object):
                 bot.post(channel, text="{!s}, greetings".format(user))
 
         """
-        def decorated(function):
-            new_filter = wraps(function)(Filter(
-                match_txt=filter,
-                handler=function,
-                channels=channel,
-                regex=regex
-            ))
-            self._hooks[events.MESSAGE].append(new_filter)
+        if channel is None:
+            channel = current_plugin().channels
 
-            return new_filter
+        def decorated(function):
+            if isinstance(function, Filter):
+                function.add_filter(filter, regex)
+                return function
+            else:
+                new_filter = wraps(function)(Filter(
+                    match_txt=filter,
+                    handler=function,
+                    channels=channel,
+                    regex=regex
+                ))
+                self._hooks[events.MESSAGE].append(new_filter)
+                return new_filter
 
         return decorated
 
@@ -419,7 +432,7 @@ class Lazbot(object):
 
         return decorated(function) if function else decorated
 
-    def translate(self, channel="*", function=None):
+    def translate(self, channel=None, function=None):
         """Register a translation function
 
         (decorator) Will register the decorated function in the series of
@@ -437,7 +450,10 @@ class Lazbot(object):
                 return text.replace(bot.user, "me")
 
         """
-        if not isinstance(channel, list) and channel != "*":
+        if channel is None:
+            channel = current_plugin().channels
+
+        if not isinstance(channel, list) and channel is not None:
             channel = [channel]
 
         def decorated(function):

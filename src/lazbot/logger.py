@@ -1,24 +1,9 @@
 import logging
 import contextlib
+from plugin import current_plugin
 
 base_logger = logging
 current_logger = base_logger
-_current_plugin = ''
-
-
-def current_plugin(x=None):
-    """Plugin context dictation
-    If provided with a string, it will change the global plugin context
-    tracking that is used with logging, data access, and other things.
-
-    If no string is provided, it will return the current context that the
-    code is being run in.
-    """
-    global _current_plugin
-
-    if x:
-        _current_plugin = x
-    return _current_plugin
 
 
 def setup():
@@ -54,16 +39,16 @@ def log(*args, **kwargs):
 
 
 @contextlib.contextmanager
-def scope(name):
+def scope(plugin):
     """runs code inside of a specified context
     any code run within the context will have a plugin name as specified.  this
     is used for controlled data access, logging, and other things.
     """
     global current_logger
 
-    tmp = (_current_plugin, current_logger)
-    current_logger = base_logger.getLogger(str(name))
-    current_plugin(name)
+    tmp = (current_plugin(), current_logger)
+    current_logger = base_logger.getLogger(str(plugin))
+    current_plugin(plugin)
 
     yield
 

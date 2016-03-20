@@ -11,6 +11,12 @@ app.bot = Lazbot(app.config["slack_token"])
 app.bot.stream = False
 
 directory = os.path.dirname(sys.argv[0]) + "/.."
+plugin_info = app.config.get("plugins", [])
+plugins = utils.load_plugins(
+    os.path.join(directory, "src", "plugins"), *plugin_info)
+
+for name, plugin in plugins.items():
+    locals()[name] = plugin.module
 
 
 def connect():
@@ -33,4 +39,4 @@ predefined:
     app.config -> `$ROOT/config.json`
 
     (plugins) -> {}
-'''.format(', '.join([])), local=locals())
+'''.format(', '.join(plugins.keys())), local=locals())

@@ -9,7 +9,8 @@ class File(Event):
     def __init__(self, bot, raw):
         Event.__init__(self, bot, raw)
 
-        self.file = models.File(self.raw["file"])
+        self.file = models.File(self.raw["file"]) if "file" in self.raw \
+            else None
 
     def __dict__(self):
         return {

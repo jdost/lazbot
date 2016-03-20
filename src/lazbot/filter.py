@@ -1,11 +1,20 @@
 import logger
 from utils import clean_args, identity
 from plugin import Hook
-from events import events
+from events import events, Event
 
 import re
 
 RegexObject = type(re.compile("regex object"))
+
+
+def compare(cmp, txt):
+    if cmp == "*":
+        return True
+    elif isinstance(cmp, RegexObject):
+        return cmp.match(txt)
+    else:
+        return cmp == txt
 
 
 class Filter(Hook):
@@ -33,11 +42,11 @@ class Filter(Hook):
         },
         "str": {
             "regex": "[a-zA-Z]+",
-            "handler": identity
+            "handler": lambda _, s: s
         },
         "*": {
-            "regex": "[a-zA-Z0-9_ \+\-]+",
-            "handler": identity
+            "regex": "[a-zA-Z0-9_ \+\-\?\(\)]+",
+            "handler": lambda _, s: s
         },
         "int": {
             "regex": "[0-9]+",
@@ -103,14 +112,12 @@ class Filter(Hook):
 
     def __init__(self, match_txt='', handler=None, channels=None,
                  regex=False):
-        self.parser = None
+        self.parser = []
+        self.cmp = []
         self.channels = self._cleanup_channels(channels)
         self.disabled = False
 
-        if regex:
-            self.cmp, self.parser = self.compile_regex(match_txt)
-        else:
-            self.cmp = match_txt
+        self.add_filter(match_txt, regex)
 
         Hook.__init__(self, events.MESSAGE,
                       clean_args(handler if handler else identity))
@@ -129,13 +136,24 @@ class Filter(Hook):
         '''
         self.disabled = False
 
+    def add_filter(self, match_txt, regex=False):
+        if regex:
+            comp, parser = self.compile_regex(match_txt)
+        else:
+            comp, parser = match_txt, None
+
+        self.cmp.insert(0, comp)
+        self.parser.insert(0, parser)
+
     def __parse__(self, text):
-        if type(self.cmp) is str:
+        index = self.__index__(text)
+        if type(self.cmp[index]) is str:
             return {}
 
-        match = self.cmp.match(text)
+        match = self.cmp[index].match(text)
 
-        return self.parser(self.bot, match) if self.parser else match
+        return self.parser[index](self.bot, match) if self.parser[index] \
+            else match
 
     def __call__(self, event=None, direct=False, **kwargs):
         if not event and direct:
@@ -147,16 +165,20 @@ class Filter(Hook):
         result = self.__parse__(event.text)
         return Hook.__call__(self, event + result)
 
-    def __eq__(self, target):
+    def __eq__(self, target, show_index=False):
+        if not isinstance(target, Event):
+            return Hook.__eq__(self, target)
+
         if self.channels and str(target.channel) not in self.channels:
             return False
 
-        if self.cmp == "*":
-            return True
-        elif isinstance(self.cmp, RegexObject):
-            return self.cmp.match(target.text)
-        else:
-            return self.cmp == target.text
+        return self.__index__(target.text) != -1
+
+    def __index__(self, text):
+        for i in range(len(self.cmp)):
+            if compare(self.cmp[i], text):
+                return i
+        return -1
 
 
 class Parser(object):

@@ -14,39 +14,42 @@ class DbAccess(object):
     def setup(self, config=None):
         import os
         from lazbot.utils import merge
+        from lazbot import logger
 
         if config:
             self.config = merge(self.config, **config)
 
         if not os.path.exists(self.config["dir"]):
             os.mkdir(self.config["dir"])
+            logger.info("Creating data directory: %s", self.config["dir"])
 
     def close(self):
         for db in self.dbs.values():
             db.close()
 
     def _db(self):
-        from lazbot.logger import current_plugin
+        from lazbot.plugin import current_plugin
         import os.path as path
+        from lazbot import logger
 
-        plugin = current_plugin()
+        plugin = str(current_plugin())
+        location = path.join(self.config["dir"], plugin)
         if plugin not in self.dbs:
+            logger.info("Loading db for %s at %s", plugin, location)
             if self.config["backend"] == "anydbm":
                 import anydbm
-                self.dbs[plugin] = anydbm.open(
-                    path.join(self.config["dir"], plugin), "c")
+                self.dbs[plugin] = anydbm.open(location, "c")
             elif self.config["backend"] == "shelve":
                 import shelve
-                self.dbs[plugin] = shelve.open(
-                    path.join(self.config["dir"], plugin))
+                self.dbs[plugin] = shelve.open(location)
 
         return self.dbs[plugin]
 
-    def get(self, key):
+    def get(self, key, default=None):
         import json
 
         db = self._db()
-        return json.loads(db[key]) if key in db else None
+        return json.loads(db[key]) if key in db else default
 
     def __getitem__(self, name):
         return self.get(name)

@@ -2,6 +2,22 @@ import logger
 from contextlib import contextmanager
 
 _plugins = {}
+_current_plugin = None
+
+
+def current_plugin(x=None):
+    """Plugin context dictation
+    If provided with a string, it will change the global plugin context
+    tracking that is used with logging, data access, and other things.
+
+    If no string is provided, it will return the current context that the
+    code is being run in.
+    """
+    global _current_plugin
+
+    if x:
+        _current_plugin = x
+    return _current_plugin
 
 
 class Plugin(object):
@@ -11,12 +27,18 @@ class Plugin(object):
     that exist as hooks.  This can be used for both unloading an entire plugin
     or for reloading a plugin.
     """
-    def __init__(self, name, load=True):
-        self.name = name
+    def __init__(self, settings, load=True):
+        self.name = settings["plugin"]
         self.loaded = False
         self.hooks = []
         self.module = None
-        _plugins[name] = self
+        self.settings = settings
+        self.channels = settings.get("channels", None)
+        _plugins[self.name] = self
+
+        if self.settings.get("db", False):
+            import db
+            db.setup()
 
         if load:
             self.load()
@@ -35,7 +57,7 @@ class Plugin(object):
             self.unload()
             return self.reload()
 
-        logger.current_plugin(self)
+        current_plugin(self)
         logger.info("Loading plugin: %s", self)
 
         with self.context():
@@ -70,9 +92,9 @@ class Plugin(object):
         from app import config
 
         original_context = config.context()
-        config.context(self.name)
+        config.context(self.settings.get("config", None))
 
-        with logger.scope(self.name):
+        with logger.scope(self):
             yield
 
         config.context(original_context)
@@ -96,7 +118,7 @@ class Hook(object):
         self.handler = hook
         self.event_type = hook_type
         self.channels = self.channels if hasattr(self, "channels") else []
-        self.plugin = logger.current_plugin()
+        self.plugin = current_plugin()
         if isinstance(self.plugin, Plugin):
             self.plugin.register(self)
 
@@ -104,6 +126,12 @@ class Hook(object):
         with self.context():
             info = event if isinstance(event, dict) else event.__dict__()
             return self.handler(**info) if self.handler else Hook.removed()
+
+    def __eq__(self, other):
+        if not isinstance(other, Hook):
+            return False
+
+        return self.handler.__name__ == other.handler.__name__
 
     @contextmanager
     def context(self):

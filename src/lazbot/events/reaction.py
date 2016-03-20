@@ -27,4 +27,3 @@ class Reaction(Event):
     def __unicode__(self):
         return u"{} reacted with :{}: in {}".format(
             self.user, self.emoji, self.target)
-

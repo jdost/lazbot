@@ -1,6 +1,6 @@
 from app import bot, config
 from lazbot import logger
-from plugin import Plugin
+from lazbot.plugin import Plugin
 
 admins = config.get('admins', [])
 

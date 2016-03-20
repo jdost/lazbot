@@ -20,7 +20,7 @@ def load_plugins(directory, *plugins):
     from plugin import Plugin
 
     return dict(zip(
-        filter(plugins),
+        [plugin["plugin"] for plugin in plugins if plugin],
         [Plugin(plugin) for plugin in plugins if plugin]
     ))
 
@@ -119,29 +119,38 @@ def first(f, iter):
     return None
 
 
-def merge(base, update):
+def merge(base, update=None, **kwargs):
     x = base.copy()
-    x.update(update)
+    if update and isinstance(update, dict):
+        x.update(update)
+    elif len(kwargs):
+        x.update(kwargs)
+
     return x
 
 
 class Config(DictMixin):
-    def __init__(self, filename):
-        self.filename = filename
-        self.base = json.load(file(filename, 'r'))
+    def __init__(self, filename=None, value=None):
+        if filename:
+            self.filename = filename
+            self.base = json.load(file(filename, 'r'))
+        else:
+            self.filename = None
+            self.base = value if value else {}
+
+        self._context = self.base
 
     def context(self, scope=None):
         if scope:
             self._context = scope
-            self.context = self.base[scope] if scope else self.base
         else:
             return self._context
 
     def __getitem__(self, key):
-        return self.context[key]
+        return self._context[key]
 
     def __setitem__(self, key, value):
-        self.context[key] = value
+        self._context[key] = value
 
     def keys(self):
-        return self.context.keys()
+        return self._context.keys()
