@@ -2,8 +2,7 @@
 
 from app import bot
 from lazbot.utils import compare
-from lazbot.models import Channel, User, File
-from lazbot.events import Message
+from lazbot.models import Channel, User, File, Message
 from lazbot.events import events
 import lazbot.logger as logger
 

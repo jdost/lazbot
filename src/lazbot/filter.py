@@ -45,7 +45,7 @@ class Filter(Hook):
             "handler": lambda _, s: s
         },
         "*": {
-            "regex": "[a-zA-Z0-9_ \+\-\?\(\)]+",
+            "regex": "[a-zA-Z0-9_ \.\,\:\+\-\?\(\)]+",
             "handler": lambda _, s: s
         },
         "int": {
@@ -162,17 +162,21 @@ class Filter(Hook):
         if self.disabled or not (self == event):
             return
 
-        result = self.__parse__(event.text)
+        result = self.__parse__(event.msg.text)
         return Hook.__call__(self, event + result)
 
     def __eq__(self, target, show_index=False):
         if not isinstance(target, Event):
             return Hook.__eq__(self, target)
-
-        if self.channels and str(target.channel) not in self.channels:
+        elif not target.msg:
             return False
 
-        return self.__index__(target.text) != -1
+        msg = target.msg
+
+        if self.channels and str(msg.channel) not in self.channels:
+            return False
+
+        return self.__index__(msg.text) != -1
 
     def __index__(self, text):
         for i in range(len(self.cmp)):

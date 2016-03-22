@@ -50,11 +50,13 @@ class TestEvents(test.TestBase):
             "user": "tester",
             "channel": "test_channel",
             "text": "test message",
+            "ts": 1234,
         }
 
         event = self.create(message)
         self.assertEqual(str(event), "tester (test_channel): test message")
-        self.assertHasKeys(event.__dict__(), "ts", "user", "channel", "text")
+        self.assertHasKeys(event.__dict__(), "ts", "user", "channel", "text",
+                           "msg")
 
     def test_build_file(self):
         ''' File event types are constructed properly

@@ -24,7 +24,9 @@ class DbAccess(object):
             logger.info("Creating data directory: %s", self.config["dir"])
 
     def close(self):
-        for db in self.dbs.values():
+        from lazbot import logger
+        for name, db in self.dbs.items():
+            logger.info("Closing db: %s", name)
             db.close()
 
     def _db(self):

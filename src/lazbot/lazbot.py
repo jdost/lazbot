@@ -3,8 +3,8 @@ from datetime import datetime, timedelta
 import json
 from ssl import SSLError
 
-from models import Model, User
-from events import events, build, Message
+from models import Model, User, Message
+from events import events, build
 from filter import Filter
 from slacker import Slacker
 from websocket import create_connection
@@ -122,15 +122,17 @@ class Lazbot(object):
         if not self.stream:
             return
 
-        while self.running:
-            self._read()
-            self.__check_tasks()
-            self.autoping()
-            time.sleep(.1)
+        try:
+            while self.running:
+                self._read()
+                self.__check_tasks()
+                self.autoping()
+                time.sleep(.1)
+        except:
+            self.clean_up()
+            raise
 
-        for handler in self._hooks[events.TEARDOWN]:
-            handler()
-        self.__teardown()
+        self.clean_up()
 
     def stop(self):
         """Stop the bot process
@@ -140,6 +142,13 @@ class Lazbot(object):
         logger.info("Stopping bot")
         self.running = False
         self.socket.close()
+
+        self.clean_up()
+
+    def clean_up(self):
+        for handler in self._hooks[events.TEARDOWN]:
+            handler({})
+        self.__teardown()
 
     def reconnect(self):
         self.stop()
@@ -182,8 +191,9 @@ class Lazbot(object):
 
         result = self.client.chat.post_message(**message).body
         result["type"] = "message"
+        result["user"] = self.user.id
 
-        return Message(self, result)
+        return Message(result)
 
     def get_user(self, user_id):
         """Helper function to lookup rich User object

@@ -2,13 +2,7 @@ from util import unicode_clean
 
 
 class Event(object):
-    cleanup_functions = []
     channel = None
-
-    @classmethod
-    def cleanup_filter(cls, f):
-        cls.cleanup_functions.append(f)
-        return f
 
     def __init__(self, bot, raw):
         self.raw = raw
@@ -27,7 +21,7 @@ class Event(object):
         return self.type in types
 
     def __str__(self):
-        return unicode_clean(self.__unicode__())
+        return str(unicode_clean(self.__unicode__()))
 
     def __unicode__(self):
         return u"Event: {}".format(self.type)

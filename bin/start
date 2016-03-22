@@ -30,6 +30,6 @@ if __name__ == "__main__":
     try:
         app.bot.start()
     except KeyboardInterrupt:
-        sys.exit(0)
+        app.bot.stop()
 
 # vim: ft=python
