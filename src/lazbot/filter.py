@@ -2,6 +2,7 @@ import logger
 from utils import clean_args, identity
 from plugin import Hook
 from events import events, Event
+from models import Channel
 
 import re
 
@@ -57,7 +58,7 @@ class Filter(Hook):
             "handler": lambda _, s: map(int, s.split(' '))
         },
     }
-    TRANSLATION_CAPTURE = r'\<([\[\]\{\}\(\)\,\'0-9a-zA-Z\*]+)\:([a-z]+)\>'
+    TRANSLATION_CAPTURE = r'\<([\[\]\{\}\(\)\,\'\|0-9a-zA-Z\*]+)\:([a-z]+)\>'
 
     @classmethod
     def compile_regex(cls, base_str):
@@ -107,17 +108,17 @@ class Filter(Hook):
 
         if type(channels) == list:
             return [str(channel) for channel in channels]
+        elif channels in Channel.TYPES:
+            return channels
         else:
             return [str(channels)]
 
     def __init__(self, match_txt='', handler=None, channels=None,
                  regex=False):
-        self.parser = []
         self.cmp = []
-        self.channels = self._cleanup_channels(channels)
         self.disabled = False
 
-        self.add_filter(match_txt, regex)
+        self.add_filter(match_txt, channels, regex)
 
         Hook.__init__(self, events.MESSAGE,
                       clean_args(handler if handler else identity))
@@ -136,23 +137,26 @@ class Filter(Hook):
         '''
         self.disabled = False
 
-    def add_filter(self, match_txt, regex=False):
+    def add_filter(self, match_txt, channels=None, regex=False):
         if regex:
             comp, parser = self.compile_regex(match_txt)
         else:
             comp, parser = match_txt, None
 
-        self.cmp.insert(0, comp)
-        self.parser.insert(0, parser)
+        self.cmp.insert(0, {
+            "channel": Filter._cleanup_channels(channels),
+            "match": comp,
+            "parser": parser
+        })
 
-    def __parse__(self, text):
-        index = self.__index__(text)
-        if type(self.cmp[index]) is str:
+    def __parse__(self, msg):
+        cmp = self.__match__(msg)
+        if type(cmp["match"]) is str:
             return {}
 
-        match = self.cmp[index].match(text)
+        match = cmp["match"].match(msg.text)
 
-        return self.parser[index](self.bot, match) if self.parser[index] \
+        return cmp["parser"](self.bot, match) if cmp["parser"] \
             else match
 
     def __call__(self, event=None, direct=False, **kwargs):
@@ -162,27 +166,24 @@ class Filter(Hook):
         if self.disabled or not (self == event):
             return
 
-        result = self.__parse__(event.msg.text)
+        result = self.__parse__(event.msg)
         return Hook.__call__(self, event + result)
 
-    def __eq__(self, target, show_index=False):
+    def __eq__(self, target):
         if not isinstance(target, Event):
             return Hook.__eq__(self, target)
         elif not target.msg:
             return False
 
-        msg = target.msg
+        return self.__match__(target.msg) != None
 
-        if self.channels and str(msg.channel) not in self.channels:
-            return False
+    def __match__(self, msg):
+        for cmp in self.cmp:
+            if cmp["channel"] == msg.channel and \
+                    compare(cmp["match"], msg.text):
+                return cmp
 
-        return self.__index__(msg.text) != -1
-
-    def __index__(self, text):
-        for i in range(len(self.cmp)):
-            if compare(self.cmp[i], text):
-                return i
-        return -1
+        return None
 
 
 class Parser(object):

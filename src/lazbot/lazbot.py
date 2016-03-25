@@ -336,7 +336,7 @@ class Lazbot(object):
 
         def decorated(function):
             if isinstance(function, Filter):
-                function.add_filter(filter, regex)
+                function.add_filter(filter, channels=channel, regex=regex)
                 return function
             else:
                 new_filter = wraps(function)(Filter(

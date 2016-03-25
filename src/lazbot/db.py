@@ -26,8 +26,12 @@ class DbAccess(object):
     def close(self):
         from lazbot import logger
         for name, db in self.dbs.items():
+            if not db:
+                continue
+
             logger.info("Closing db: %s", name)
             db.close()
+            self.dbs[name] = None
 
     def _db(self):
         from lazbot.plugin import current_plugin
@@ -36,7 +40,7 @@ class DbAccess(object):
 
         plugin = str(current_plugin())
         location = path.join(self.config["dir"], plugin)
-        if plugin not in self.dbs:
+        if plugin not in self.dbs or self.dbs[plugin] is None:
             logger.info("Loading db for %s at %s", plugin, location)
             if self.config["backend"] == "anydbm":
                 import anydbm

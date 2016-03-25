@@ -85,6 +85,7 @@ class Channel(Model):
     IM = "im"
     CHANNEL = "channel"
     MPIM = "mpim"
+    TYPES = frozenset([GROUP, IM, CHANNEL, MPIM])
 
     def __init__(self, data):
         self.id = data["id"]
@@ -108,6 +109,10 @@ class Channel(Model):
     def __eq__(self, compare):
         if isinstance(compare, Channel):
             return compare.id == self.id
+        elif isinstance(compare, list):
+            return str(self) in compare or self.id in compare
+        elif compare in Channel.TYPES:
+            return compare == self.type
         else:
             return compare == self.id or compare == self.name
 
