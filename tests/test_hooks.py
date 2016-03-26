@@ -1,4 +1,4 @@
-from lazbot.test import TestBase
+from lazbot.test import TestBase, build_channel
 from lazbot import logger
 from lazbot.utils import merge
 
@@ -12,6 +12,11 @@ def non_priority_handler():
 
 
 class ListenTest(TestBase):
+    def setUp(self):
+        TestBase.setUp(self)
+        self.test_channel = build_channel(name="test")
+        self.bot.channels[self.test_channel.id] = self.test_channel
+
     def test_listen_base_filter(self):
         ''' Test the basic listening filter
         The ``listen`` filter should match exact strings by default.
@@ -30,14 +35,14 @@ class ListenTest(TestBase):
         The ``listen`` filter should not trigger listeners if the source
         channel is out of scope.
         '''
-        self.bot.listen("test", channel="test")(self.trigger)
+        self.bot.listen("test", channel="#test")(self.trigger)
         base_message = {"type": "message", "text": "test"}
 
         with self.assertDoesNotTrigger():
             self.bot.recv_event(merge(base_message, channel="bad"))
 
         with self.assertTriggers():
-            self.bot.recv_event(merge(base_message, channel="test"))
+            self.bot.recv_event(merge(base_message, channel="1234"))
 
     def test_listen_regex(self):
         ''' Test the regex listening filter

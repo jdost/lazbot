@@ -179,7 +179,7 @@ class Filter(Hook):
 
     def __match__(self, msg):
         for cmp in self.cmp:
-            if cmp["channel"] == msg.channel and \
+            if (not cmp["channel"] or cmp["channel"] == msg.channel) and \
                     compare(cmp["match"], msg.text):
                 return cmp
 

@@ -1,5 +1,5 @@
 from lazbot import Lazbot
-from models import Model
+from models import Model, Channel
 from plugin import Hook, Plugin, current_plugin
 import unittest
 from contextlib import contextmanager
@@ -123,3 +123,7 @@ def setup(bot=None):
         app.bot = bot
 
     return app
+
+
+def build_channel(id="1234", name="#test"):
+    return Channel({"id": id, "name": name})
