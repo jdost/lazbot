@@ -175,7 +175,7 @@ class Filter(Hook):
         elif not target.msg:
             return False
 
-        return self.__match__(target.msg) != None
+        return self.__match__(target.msg) is not None
 
     def __match__(self, msg):
         for cmp in self.cmp:
