@@ -38,6 +38,7 @@ class Lazbot(object):
     """
     ping_packet = json.dumps({"type": "ping"})
     PING_INTERVAL = 3
+    SLEEP_INTERVAL = 0.1
     IGNORED_EVENTS = [events.PONG, events.USER_TYPING, events.PRESENCE_CHANGE,
                       events.RECONNECT_URL]
 
@@ -108,8 +109,7 @@ class Lazbot(object):
         """Start up the bot process
 
         Calls the ``connect`` method and then (if ``stream`` is set) begins the
-        event loop, reading events off of the socket, running scheduled tasks,
-        and keeping the connection alive.
+        event loop.
         """
         login_data = self.connect()
         if not login_data:
@@ -119,18 +119,27 @@ class Lazbot(object):
         for handler in self._hooks[events.SETUP]:
             handler(merge(login_data, {"client": self.client}))
 
+        if self.stream:
+            try:
+                self.read()
+            except:
+                self.stop()
+                raise
+
+    def read(self):
+        """Run the event loop
+
+        While the bot is running, will continually read events off of the
+        socket, run scheduled tasks, and keep the connection alive.
+        """
         if not self.stream:
             return
 
-        try:
-            while self.running:
-                self._read()
-                self.__check_tasks()
-                self.autoping()
-                time.sleep(.1)
-        except:
-            self.clean_up()
-            raise
+        while self.running:
+            self._read()
+            self.__check_tasks()
+            self.autoping()
+            time.sleep(self.SLEEP_INTERVAL)
 
         self.clean_up()
 
@@ -139,6 +148,9 @@ class Lazbot(object):
 
         Closes the socket and turns listeners off
         """
+        if not self.running:
+            return
+
         logger.info("Stopping bot")
         self.running = False
         self.socket.close()
