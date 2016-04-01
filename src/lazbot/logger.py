@@ -47,7 +47,7 @@ def scope(plugin):
     global current_logger
 
     tmp = (current_plugin(), current_logger)
-    current_logger = base_logger.getLogger(str(plugin))
+    current_logger = base_logger.getLogger(str(plugin) if plugin else "root")
     current_plugin(plugin)
 
     yield

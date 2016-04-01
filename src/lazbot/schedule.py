@@ -122,16 +122,15 @@ class ScheduledTask(Hook):
         return "Running {!s} at {!s}".format(self.handler.__name__, self.next)
 
     def __call__(self, quiet=False, *args, **kwargs):
-        if quiet:
-            pass
-        elif self.done:
+        if self.done:
             return
         elif self.recurring:
             self.next = datetime.now(tzutc()) + self.delta
-            logger.debug(self)
         else:
             self.done = True
 
         with self.context():
+            if not quiet:
+                logger.debug(self)
             return self.handler(*args, **kwargs) if self.handler else \
                 Hook.removed()
