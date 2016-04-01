@@ -31,6 +31,7 @@ class User(Model):
         self.__restricted = data.get("is_restricted", False)
 
         self.timezone = data.get("tz_offset", 0) / (60 * 60)
+        self.im_channel = None
 
     def __eq__(self, compare):
         if isinstance(compare, User):
@@ -79,6 +80,12 @@ class User(Model):
 
         self.__deleted = bool(deleted)
 
+    def im(self, text):
+        if not self.im_channel:
+            self.im_channel = Channel.open_im(self)
+
+        self.bot.post(channel=self.im_channel, text=text)
+
 
 class Channel(Model):
     GROUP = "group"
@@ -86,6 +93,11 @@ class Channel(Model):
     CHANNEL = "channel"
     MPIM = "mpim"
     TYPES = frozenset([GROUP, IM, CHANNEL, MPIM])
+
+    @classmethod
+    def open_im(cls, user):
+        new_channel = cls.bot.client.im.open(user=user.id)
+        return Channel({"id": new_channel["channel"]["id"], "user": user.id})
 
     def __init__(self, data):
         self.id = data["id"]
@@ -102,7 +114,9 @@ class Channel(Model):
 
             self.members = map(self.bot.get_user, data.get("members", []))
         else:
-            self.members = [self.bot.get_user(data["user"])]
+            user = self.bot.get_user(data["user"])
+            self.members = [user]
+            user.im_channel = self
             self.name = self.members[0].name
             self.type = Channel.IM
 
@@ -156,6 +170,15 @@ class Channel(Model):
             data["user"] = raw["members"][0]
 
         return Channel(data)
+
+    def post(self, text):
+        if isinstance(text, list):
+            return [self.post(t) for t in text]
+
+        return self.bot.post(
+            channel=self,
+            text=text
+        )
 
 
 class File(Model):
@@ -259,6 +282,12 @@ class Message(Model):
             text=text
         )
 
+    def delete(self):
+        return self.bot.client.chat.delete(
+            ts=self.timestamp,
+            channel=self.channel.id
+        )
+
     def react(self, emoji):
         return self.bot.client.reactions.add(
             name=emoji,
@@ -267,8 +296,15 @@ class Message(Model):
         )
 
     def get_reactions(self, full=True):
-        return self.bot.client.reactions.get(
+        reactions = {}
+        reactions_raw = self.bot.client.reactions.get(
             channel=self.channel.id,
             timestamp=self.timestamp,
             full=full
         ).body["message"]["reactions"]
+
+        for reaction in reactions_raw:
+            reactions[reaction["name"]] = set([self.bot.get_user(user) for user
+                                               in reaction["users"]])
+
+        return reactions
