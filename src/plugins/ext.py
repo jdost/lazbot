@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+''' utility plugin to make writing other plugins easier
+Deals with unicode translations, normalizes the username, generates rich
+objects for common models among other things.
+'''
 
 from app import bot
 from lazbot.utils import compare

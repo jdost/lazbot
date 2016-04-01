@@ -3,7 +3,7 @@ import json
 import os
 import glob
 from functools import wraps
-from types import ModuleType
+from types import ModuleType, FunctionType, MethodType
 from inspect import getargspec
 from UserDict import DictMixin
 
@@ -133,6 +133,14 @@ def merge(base, update=None, **kwargs):
         x.update(kwargs)
 
     return x
+
+
+def doc(tgt):
+    if isinstance(tgt.__doc__, FunctionType) or \
+            isinstance(tgt.__doc__, MethodType):
+        return tgt.__doc__()
+    else:
+        return tgt.__doc__
 
 
 class Config(DictMixin):

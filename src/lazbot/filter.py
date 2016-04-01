@@ -42,11 +42,11 @@ class Filter(Hook):
             "handler": lambda b, s: b.get_channel(s)
         },
         "str": {
-            "regex": "[a-zA-Z]+",
+            "regex": "[a-zA-Z_]+",
             "handler": lambda _, s: s
         },
         "*": {
-            "regex": "[a-zA-Z0-9_ \.\,\:\+\-\?\(\)]+",
+            "regex": "[a-zA-Z0-9_ \'\.\,\:\+\-\?\(\)]+",
             "handler": lambda _, s: s
         },
         "int": {

@@ -1,5 +1,6 @@
 import logger
 from contextlib import contextmanager
+from .utils import doc
 
 _plugins = {}
 _current_plugin = None
@@ -27,6 +28,7 @@ class Plugin(object):
     that exist as hooks.  This can be used for both unloading an entire plugin
     or for reloading a plugin.
     """
+
     def __init__(self, settings, load=True):
         self.name = settings["plugin"]
         self.loaded = False
@@ -102,6 +104,32 @@ class Plugin(object):
     def __str__(self):
         return self.name
 
+    def __doc__(self):
+        from filter import Filter
+
+        doc_str = doc(self.module)
+        if not doc_str:
+            return ""
+
+        doc_str = '*{} plugin*: {}'.format(self.name, doc_str)
+
+        documented_hooks = []
+        for hook in [h for h in self.hooks if isinstance(h, Filter)]:
+            _doc = doc(hook)
+            if _doc:
+                documented_hooks.append("{}.{}".format(
+                    self.name, hook.__name__))
+
+        if len(documented_hooks):
+            doc_str = doc_str + "\n*commands*: {}".format(
+                ', '.join(documented_hooks))
+
+        return doc_str
+
+    @classmethod
+    def loaded(cls):
+        return _plugins.keys()
+
 
 class Hook(object):
     @classmethod
@@ -116,6 +144,7 @@ class Hook(object):
 
     def __init__(self, hook_type, hook):
         self.handler = hook
+        self.__name__ = hook.__name__
         self.event_type = hook_type
         self.channels = self.channels if hasattr(self, "channels") else []
         self.plugin = current_plugin()
@@ -146,3 +175,8 @@ class Hook(object):
         """ Remove contained reference to plugin function
         """
         self.handler = None
+
+    def __doc__(self):
+        ds = doc(self.handler)
+        return '*{!s}.{!s} - {!s}'.format(self.plugin.name, self.__name__, ds)\
+            if ds else ''
