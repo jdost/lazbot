@@ -1,6 +1,3 @@
-from util import unicode_clean
-
-
 class Event(object):
     channel = None
 
@@ -21,7 +18,7 @@ class Event(object):
         return self.type in types
 
     def __str__(self):
-        return str(unicode_clean(self.__unicode__()))
+        return self.__unicode__()
 
     def __unicode__(self):
         return u"Event: {}".format(self.type)

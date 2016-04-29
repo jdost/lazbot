@@ -1,6 +1,3 @@
-import re
-
-
 class Model(object):
     cleanup_functions = []
 
@@ -14,7 +11,7 @@ class Model(object):
         cls.bot = bot
 
     def __str__(self):
-        return str(re.sub(r'[^\x00-\x7f]', r'?', unicode(self)))
+        return self.__unicode__()
 
 
 class User(Model):
@@ -200,10 +197,14 @@ class File(Model):
                                   data["ims"]))
 
     def __unicode__(self):
-        return u'{} - {}'.format(unicode(self.title), unicode(self.name))
+        return u'{} - {} ({})'.format(self.id, self.name, self.owner)
 
     def __repr__(self):
         return u'<{}:{}>'.format(self.name, self.type)
+
+    def __url__(self):
+        return "https://{}.slack.com/files/{}/{}/{}".format(
+            self.bot.domain, self.owner.name, self.id, self.name)
 
     def __json__(self):
         return {
@@ -247,16 +248,17 @@ class Message(Model):
         self.user = self.bot.get_user(data.get("user", ""))
 
     def __unicode__(self):
-        return u"{} ({}): {}".format(unicode(self.user),
-                                     unicode(self.channel), unicode(self.text))
+        return u"{} ({}): {}".format(self.user, self.channel, self.text)
 
     def __repr__(self):
         return "<{!s}:{!s}>".format(self.channel, self.timestamp)
 
-    def __url__(self):
-        return "https://{}.slack.com/archives/{}/p{}".format(
+    def __url__(self, name=None):
+        url = "https://{}.slack.com/archives/{}/p{}".format(
             self.bot.domain, self.channel.name,
             str(self.timestamp).replace(".", ""))
+
+        return url if not name else "<{}|{}>".format(url, name)
 
     def __json__(self):
         return {
@@ -267,7 +269,7 @@ class Message(Model):
         }
 
     @classmethod
-    def from_json(self, raw):
+    def from_json(cls, raw):
         return Message({
             "ts": raw["timestamp"],
             "text": raw["text"],

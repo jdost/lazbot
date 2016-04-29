@@ -1,5 +1,5 @@
-from event import Event
-import events
+from . import events
+from .event import Event
 
 
 class Reaction(Event):

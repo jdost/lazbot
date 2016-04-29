@@ -3,19 +3,19 @@ from datetime import datetime, timedelta
 import json
 from ssl import SSLError
 
-from models import Model, User, Message
-from events import events, build
-from filter import Filter
+from .models import Model, User, Message, Channel
+from .events import events, build
+from .filter import Filter
 from slacker import Slacker
 from websocket import create_connection
 from dateutil.tz import tzutc
-from functools import wraps
-from plugin import Hook, current_plugin
+from functools import wraps, reduce
+from .plugin import Hook, current_plugin
 
-from utils import clean_args, merge
+from .utils import clean_args, merge
 
-import logger
-import db
+from . import logger
+from . import db
 
 Slacker.DEFAULT_TIMEOUT = 20
 
@@ -99,7 +99,7 @@ class Lazbot(object):
         self.parse_login_data(reply.body)
 
         if self.stream:
-            logger.info("Connecting socket: %s", ws_url)
+            logger.debug("Connecting socket: %s", ws_url)
             self.socket = create_connection(ws_url)
             self.socket.sock.setblocking(0)
 
@@ -187,7 +187,7 @@ class Lazbot(object):
 
         """
         message = {
-            "channel": channel.id,
+            "channel": channel.id if isinstance(channel, Channel) else channel,
             "username": self.user.name,
             "as_user": True,
             "link_names": 1
@@ -297,7 +297,7 @@ class Lazbot(object):
                 continue
             if event.channel and str(event.channel) in self._ignore:
                 continue
-            logger.debug(unicode(event))
+            logger.debug(event)
             for hook in self._hooks.get(event.type, []):
                 hook(event)
 
@@ -412,7 +412,7 @@ class Lazbot(object):
         return decorated(function) if function else decorated
 
     def schedule(self, function=None, when=None, after=None, recurring=False,
-                 name=None):
+                 name=None, quiet=False):
         """Register a scheduled task
 
         (decorator) Will register the decorated function (or can register a
@@ -442,13 +442,13 @@ class Lazbot(object):
                 bot.post(lunch_channel, text="Lunch time")
 
         """
-        from schedule import ScheduledTask
+        from .schedule import ScheduledTask
 
         def decorated(function):
             task = wraps(function)(
                 ScheduledTask(action=function, delta=after,
                               when=when, recurring=recurring,
-                              name=name))
+                              name=name, quiet=quiet))
             self._hooks[events.TASK].append(task)
             return task
 
@@ -473,6 +473,9 @@ class Lazbot(object):
 
         """
         if channel is None:
+            channel = current_plugin().channels
+        elif callable(channel):
+            function = channel
             channel = current_plugin().channels
 
         if not isinstance(channel, list) and channel is not None:

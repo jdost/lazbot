@@ -1,5 +1,5 @@
-import events
-from event import Event
+from . import events
+from .event import Event
 from lazbot import models
 
 UPDATE_EVENTS = frozenset([events.USER_CHANGE])

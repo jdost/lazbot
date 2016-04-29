@@ -2,6 +2,7 @@
 
 from lazbot.test import TestBase, TestBot, setup, with_data
 from lazbot.utils import merge
+from importlib import reload
 
 app = setup(bot=TestBot())
 from plugins import ext

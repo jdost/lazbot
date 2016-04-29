@@ -1,5 +1,5 @@
-from event import Event
-import events
+from .event import Event
+from . import events
 from lazbot import models
 
 
@@ -23,5 +23,5 @@ class Message(Event):
         }
 
     def __unicode__(self):
-        return unicode(self.msg) if self.msg else "<{}:{}>".format(
+        return str(self.msg) if self.msg else "<{}:{}>".format(
             self.type, self.raw["subtype"])

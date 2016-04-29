@@ -1,6 +1,6 @@
 import logging
 import contextlib
-from plugin import current_plugin
+from .plugin import current_plugin
 
 base_logger = logging
 current_logger = base_logger

@@ -1,5 +1,5 @@
-import events
-from event import Event
+from . import events
+from .event import Event
 from lazbot import models
 
 
@@ -18,4 +18,4 @@ class File(Event):
         }
 
     def __unicode__(self):
-        return u"{!s}: {}".format(self.type, unicode(self.file))
+        return u"{!s}: {}".format(self.type, self.file)

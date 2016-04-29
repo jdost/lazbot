@@ -1,6 +1,6 @@
-from lazbot import Lazbot
-from models import Model, Channel
-from plugin import Hook, Plugin, current_plugin
+from .lazbot import Lazbot
+from .models import Model, Channel
+from .plugin import Hook, Plugin, current_plugin
 import unittest
 from contextlib import contextmanager
 from functools import wraps

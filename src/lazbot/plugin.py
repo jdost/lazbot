@@ -1,4 +1,4 @@
-import logger
+from . import logger
 from contextlib import contextmanager
 from .utils import doc
 
@@ -39,7 +39,7 @@ class Plugin(object):
         _plugins[self.name] = self
 
         if self.settings.get("db", False):
-            import db
+            from . import db
             db.setup()
 
         if load:
@@ -83,7 +83,7 @@ class Plugin(object):
     def reload(self):
         """ Reload the plugin
         """
-        reload(self.module)
+        pass
 
     def register(self, hook):
         if hook not in self.hooks:

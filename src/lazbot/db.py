@@ -43,7 +43,7 @@ class DbAccess(object):
         if plugin not in self.dbs or self.dbs[plugin] is None:
             logger.info("Loading db for %s at %s", plugin, location)
             if self.config["backend"] == "anydbm":
-                import anydbm
+                import dbm as anydbm
                 self.dbs[plugin] = anydbm.open(location, "c")
             elif self.config["backend"] == "shelve":
                 import shelve
@@ -55,7 +55,7 @@ class DbAccess(object):
         import json
 
         db = self._db()
-        return json.loads(db[key]) if key in db else default
+        return json.loads(db[key].decode("utf-8")) if key in db else default
 
     def __getitem__(self, name):
         return self.get(name)

@@ -1,10 +1,10 @@
 from app import config
 from datetime import datetime, time, date, timedelta, tzinfo
 from dateutil.tz import tzutc
-import logger
-from utils import clean_args, identity
-from plugin import Hook
-from events import events
+from . import logger
+from .utils import clean_args, identity
+from .plugin import Hook
+from .events import events
 
 tz_config = {
     "utc_offset": config.get("timezone", {}).get("offset", -5),
@@ -55,7 +55,7 @@ class ScheduledTask(Hook):
      than once
     """
     def __init__(self, action=None, delta=None, when=None, recurring=None,
-                 name=None):
+                 name=None, quiet=False):
         if not when and not delta:
             raise "Need a time or time span to schedule at"
 
@@ -83,6 +83,7 @@ class ScheduledTask(Hook):
         self.recurring = recurring
         self.done = False
         self.name = name
+        self.quiet = quiet
 
         Hook.__init__(self, events.TASK,
                       clean_args(action if action else identity))
@@ -130,7 +131,7 @@ class ScheduledTask(Hook):
             self.done = True
 
         with self.context():
-            if not quiet:
+            if not quiet and not self.quiet:
                 logger.debug(self)
             return self.handler(*args, **kwargs) if self.handler else \
                 Hook.removed()

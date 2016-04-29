@@ -76,5 +76,5 @@ class TestEvents(test.TestBase):
         }
 
         event = self.create(file_created)
-        self.assertEqual(str(event.file), "Test - test.txt")
+        self.assertEqual(str(event.file), "test - test.txt (tester)")
         self.assertHasKeys(event.__dict__(), "file")

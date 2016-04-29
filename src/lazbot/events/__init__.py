@@ -1,9 +1,9 @@
-from message import Message
-from channels import Channel
-from users import User
-from event import Event
-from files import File
-from reaction import Reaction
+from .message import Message
+from .channels import Channel
+from .users import User
+from .event import Event
+from .files import File
+from .reaction import Reaction
 from lazbot.utils import first
 
 

@@ -1,8 +1,8 @@
-import logger
-from utils import clean_args, identity
-from plugin import Hook
-from events import events, Event
-from models import Channel
+from . import logger
+from .utils import clean_args, identity
+from .plugin import Hook
+from .events import events, Event
+from .models import Channel
 
 import re
 
@@ -27,7 +27,7 @@ class Filter(Hook):
     translations = {
         "[username]": {
             "regex": "(<@U[a-zA-Z0-9]+> {0,1})+",
-            "handler": lambda b, s: map(b.get_user, s.split(' '))
+            "handler": lambda b, s: list(map(b.get_user, s.split(' ')))
         },
         "username": {
             "regex": "<@U[a-zA-Z0-9]+>",
@@ -35,7 +35,7 @@ class Filter(Hook):
         },
         "[channel]": {
             "regex": "(<#C[a-zA-Z0-9]+> {0,1})+",
-            "handler": lambda b, s: map(b.get_channel, s.split(' '))
+            "handler": lambda b, s: list(map(b.get_channel, s.split(' ')))
         },
         "channel": {
             "regex": "<#C[a-zA-Z0-9]+>",
@@ -55,7 +55,7 @@ class Filter(Hook):
         },
         "[int]": {
             "regex": "([0-9]+ {0,1})+",
-            "handler": lambda _, s: map(int, s.split(' '))
+            "handler": lambda _, s: list(map(int, s.split(' ')))
         },
     }
     TRANSLATION_CAPTURE = r'\<([\[\]\{\}\(\)\,\'\|0-9a-zA-Z\*]+)\:([a-z]+)\>'

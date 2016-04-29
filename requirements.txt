@@ -3,7 +3,6 @@ freezegun==0.3.5
 flake8==2.2.2
 requests==2.7.0
 six==1.9.0
-python-dateutil==1.5
+python-dateutil==2.5.3
 slacker==0.7.3
 websocket-client==0.32.0
-wsgiref==0.1.2

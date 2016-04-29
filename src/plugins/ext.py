@@ -9,6 +9,7 @@ from lazbot.utils import compare
 from lazbot.models import Channel, User, File, Message
 from lazbot.events import events
 import lazbot.logger as logger
+from functools import reduce
 
 CHANNEL_CREATE_EVENTS = [events.CHANNEL_CREATED, events.GROUP_JOINED,
                          events.IM_CREATED]
@@ -131,4 +132,4 @@ def fix_unicode(txt):
     ''' Convert fancy unicode translations into the simpler form, things like
     smart quotes or ellipsis will become their simpler ASCII variant.
     '''
-    return reduce(lambda t, f: t.replace(*f), FIXES, unicode(txt))
+    return reduce(lambda t, f: t.replace(*f), FIXES, str(txt))

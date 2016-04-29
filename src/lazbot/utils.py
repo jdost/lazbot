@@ -5,11 +5,11 @@ import glob
 from functools import wraps
 from types import ModuleType, FunctionType, MethodType
 from inspect import getargspec
-from UserDict import DictMixin
+from collections import MutableMapping
 
 
 def load_plugins(directory, plugins=None):
-    if isinstance(plugins, basestring):
+    if isinstance(plugins, str):
         conf_dir = plugins
         plugins = []
         for conf in glob.glob(os.path.join(os.getcwd(), conf_dir, "*.json")):
@@ -23,7 +23,7 @@ def load_plugins(directory, plugins=None):
                     glob.glob(os.path.join(directory, "*")) if
                     os.path.isdir(p)]
 
-    from plugin import Plugin
+    from .plugin import Plugin
 
     return dict(zip(
         [plugin["plugin"] for plugin in plugins if plugin],
@@ -54,7 +54,7 @@ def lookup_channel(name):
 
 
 def disabled(f):
-    from filter import Filter
+    from .filter import Filter
     if isinstance(f, Filter):
         f.disable()
 
@@ -143,11 +143,11 @@ def doc(tgt):
         return tgt.__doc__
 
 
-class Config(DictMixin):
+class Config(MutableMapping):
     def __init__(self, filename=None, value=None):
         if filename:
             self.filename = filename
-            self.base = json.load(file(filename, 'r'))
+            self.base = json.load(open(filename, 'r'))
         else:
             self.filename = None
             self.base = value if value else {}
@@ -160,11 +160,20 @@ class Config(DictMixin):
         else:
             return self._context
 
+    def __iter__(self):
+        return iter(self._context)
+
     def __getitem__(self, key):
         return self._context[key]
 
     def __setitem__(self, key, value):
         self._context[key] = value
+
+    def __len__(self):
+        return len(self._context)
+
+    def __delitem__(self, item):
+        return None
 
     def keys(self):
         return self._context.keys()
