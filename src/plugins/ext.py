@@ -25,7 +25,7 @@ FIXES = [
 
 
 def log_diff(diff):
-    for (key, value) in diff.iteritems():
+    for (key, value) in iter(diff.items()):
         if value[2] == 'set':
             logger.info("Removed from %s: %s", key, ", ".join(
                 map(str, value[0])))

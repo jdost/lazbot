@@ -191,10 +191,12 @@ class File(Model):
 
         self.is_public = data["is_public"]
 
+        self.shared = []
+        return
         if any([x in data for x in ["channels", "groups", "ims"]]):
-            self.shared = set(map(self.bot.get_channel,
-                                  data["channels"] + data["groups"] +
-                                  data["ims"]))
+            self.shared = set(list(map(self.bot.get_channel,
+                                       data["channels"] + data["groups"] +
+                                       data["ims"])))
 
     def __unicode__(self):
         return u'{} - {} ({})'.format(self.id, self.name, self.owner)
