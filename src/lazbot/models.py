@@ -182,22 +182,24 @@ class Channel(Model):
 
 
 class File(Model):
-    KEYS = ["name", "title", "type", "is_public", "owner", "shared"]
+    KEYS = ["name", "title", "type", "is_public", "owner"]
 
     def __init__(self, data):
         self.id = data["id"]
-        self.name = data["name"]
+        self.name = data.get("name", None)
 
-        self.title = data["title"]
-        self.owner = self.bot.get_user(data["user"])
-        self.type = data["filetype"]
+        self.title = data.get("title", None)
+        self.owner = self.bot.get_user(data["user"]) if "user" in data \
+            else None
+        self.type = data.get("filetype", None)
 
-        self.is_public = data["is_public"]
+        self.is_public = data["is_public"] if "is_public" in data else False
 
         if any([x in data for x in ["channels", "groups", "ims"]]):
             self.shared = set(map(self.bot.get_channel,
-                                  data["channels"] + data["groups"] +
-                                  data["ims"]))
+                                  data.get("channels", []) +
+                                  data.get("groups", []) +
+                                  data.get("ims", [])))
 
     def __unicode__(self):
         return u'{} - {}'.format(unicode(self.title), unicode(self.name))
