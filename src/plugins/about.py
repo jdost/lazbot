@@ -24,6 +24,8 @@ def clean_docstring(text):
         else:
             cleaned += line + ' '
 
+    cleaned = cleaned.replace("@me", str(bot.user))
+
     return cleaned.strip('\n ')
 
 
