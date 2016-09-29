@@ -4,6 +4,6 @@ flake8==2.2.2
 requests==2.7.0
 six==1.9.0
 python-dateutil==1.5
-slacker==0.7.3
+slacker==0.9.18
 websocket-client==0.32.0
 wsgiref==0.1.2
