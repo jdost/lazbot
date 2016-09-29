@@ -58,7 +58,7 @@ class Filter(Hook):
             "handler": lambda _, s: list(map(int, s.split(' ')))
         },
     }
-    TRANSLATION_CAPTURE = r'\<([\[\]\{\}\(\)\,\'\|0-9a-zA-Z\*]+)\:([a-z]+)\>'
+    TRANSLATION_CAPTURE = r'\<([\[\]\{\}\(\)\,\'\|0-9a-zA-Z\*]+)\:([a-z_]+)\>'
 
     @classmethod
     def compile_regex(cls, base_str):

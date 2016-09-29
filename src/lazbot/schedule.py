@@ -42,6 +42,7 @@ class ScheduledTask(Hook):
     hour, it will run every hour from midnight on.
 
     Example: ::
+
         task = ScheduledTask(action=lambda: print "o'clock",
                              delta=timedelta(hours=1), when=time(0, 0, 0),
                              recurring=True)

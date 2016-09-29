@@ -1,3 +1,6 @@
+from collections import namedtuple
+
+
 class Model(object):
     cleanup_functions = []
 
@@ -168,13 +171,18 @@ class Channel(Model):
 
         return Channel(data)
 
-    def post(self, text):
+    def post(self, text=None, attachment=None):
+        text = '' if text is None else text
         if isinstance(text, list):
             return [self.post(t) for t in text]
 
+        if attachment and isinstance(attachment, Attachment):
+            attachment = attachment.to_dict()
+
         return self.bot.post(
             channel=self,
-            text=text
+            text=text,
+            attachments=[attachment]
         )
 
 
@@ -314,3 +322,36 @@ class Message(Model):
                                                in reaction["users"]])
 
         return reactions
+
+
+class Attachment(object):
+    VALID_KEYS = ['title', 'title_link', 'fields', 'text', 'color', 'pretext',
+                  'author_name', 'author_link', 'author_icon', 'image_url',
+                  'thumb_url', 'footer', 'footer_icon']
+
+    title = namedtuple('title', ['value', 'link'])
+    author = namedtuple('author', ['value', 'link', 'icon'])
+
+    def __init__(self, **kwargs):
+        if 'title' in kwargs and isinstance(kwargs['title'], tuple):
+            _title = kwargs.pop('title')
+            kwargs['title'] = _title.value
+            kwargs['title_link'] = _title.link
+
+        if 'author' in kwargs and isinstance(kwargs['author'], tuple):
+            _author = kwargs.pop('author')
+            kwargs['author'] = _author.value
+            kwargs['author_link'] = _author.link
+            kwargs['author_icon'] = _author.icon
+
+        self.body = kwargs
+
+    def add_field(self, title, value, short=True):
+        if 'fields' not in self.body:
+            self.body['fields'] = []
+
+        self.body['fields'].append({'title': title, 'value': value,
+                                    'short': short})
+
+    def to_dict(self):
+        return self.body

@@ -105,7 +105,7 @@ class Plugin(object):
         return self.name
 
     def __doc__(self):
-        from filter import Filter
+        from .filter import Filter
 
         doc_str = doc(self.module)
         if not doc_str:

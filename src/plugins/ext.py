@@ -27,11 +27,11 @@ FIXES = [
 def log_diff(diff):
     for (key, value) in iter(diff.items()):
         if value[2] == 'set':
-            logger.info("Removed from %s: %s", key, ", ".join(
+            logger.debug("Removed from %s: %s", key, ", ".join(
                 map(str, value[0])))
-            logger.info("Added to %s: %s", key, ", ".join(map(str, value[1])))
+            logger.debug("Added to %s: %s", key, ", ".join(map(str, value[1])))
         else:
-            logger.info("Value %s changed: %s -> %s", key, value[0], value[1])
+            logger.debug("Value %s changed: %s -> %s", key, value[0], value[1])
 
 
 @bot.setup(priority=True)
@@ -85,7 +85,7 @@ def file_created(file):
     ''' Listen for file creation events and add them to the lookup table.
     '''
     bot.files[file.id] = file
-    logger.info("Added file %s", file)
+    logger.debug("Added file %s", file)
 
 
 @bot.on(*FILE_CHANGE_EVENTS)
@@ -93,11 +93,11 @@ def file_updated(file):
     ''' Listen for file update events and update the file model on the bot
     '''
     if file.id in bot.files:
-        logger.info("File updated: %s", file)
+        logger.debug("File updated: %s", file)
         diff = compare(bot.files[file.id], file, File.KEYS)
         log_diff(diff)
     else:
-        logger.info("File created: %s (%s)", file, file.id)
+        logger.debug("File created: %s (%s)", file, file.id)
 
     bot.files[file.id] = file
 
@@ -109,7 +109,7 @@ def user_updated(user):
     if user.id in bot.users:
         diff = compare(bot.users[user.id], user, User.KEYS)
         log_diff(diff)
-        logger.info("User updated: %s", user)
+        logger.debug("User updated: %s", user)
     else:
         logger.info("User created: %s (%s)", user, user.id)
 
@@ -122,8 +122,11 @@ def translate_username(txt):
     writing.
     '''
     if txt.startswith(repr(bot.user)):
-        _, rest = txt.split(' ', 1)
-        txt = "@me: " + rest
+        if txt.count(' ') > 0:
+            _, rest = txt.split(' ', 1)
+            txt = "@me: " + rest
+        else:
+            txt = "@me"
     return txt.replace(repr(bot.user), "@me")
 
 
